@@ -8,7 +8,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](SKILL.md)
 [![Pass Rate](https://img.shields.io/badge/eval_pass_rate-97.6%25-brightgreen)](benchmarks/benchmark.json)
 
-**Star this repo if you found it useful ⭐**
+Created by **[Shadow (RENJI04)](https://github.com/RENJI04)** · **Star this repo if you found it useful ⭐**
 
 Drop in any system prompt. Get back a structured security report with severity-rated findings, concrete exploit proof-of-concepts that actually work, and a fully hardened rewrite ready to deploy. No external tools required — works standalone inside Claude.
 
@@ -171,8 +171,8 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-## Created By
+## Author
 
-**Shadow (RENJI04)** — [github.com/RENJI04](https://github.com/RENJI04)
+Built by **[Shadow (RENJI04)](https://github.com/RENJI04)**
 
-Built with the Claude skill-creator workflow.
+If you found this useful, give it a ⭐ — it helps others find the project.
