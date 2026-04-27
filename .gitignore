@@ -51,6 +51,9 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
+# Eval run artifacts
+evals/runs/
+
 # Temporary / run artifacts
 *.tmp
 *.bak
