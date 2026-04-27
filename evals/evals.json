@@ -1,0 +1,257 @@
+{
+  "skill_name": "prompt-injection-auditor",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "vulnerable-chatbot-audit",
+      "prompt": "Please audit this system prompt for security vulnerabilities: Aria, ShopEasy Customer Support [see evals/files/vulnerable_chatbot.txt]",
+      "expected_output": "CRITICAL overall risk. Identifies hardcoded bearer token (Critical), transparency directive (Critical), unverified returns (Critical), no input policy (High). Exploit PoCs and hardened rewrite.",
+      "files": [
+        "evals/files/vulnerable_chatbot.txt"
+      ],
+      "assertions": [
+        {
+          "id": "1a",
+          "text": "Overall Risk is rated CRITICAL"
+        },
+        {
+          "id": "1b",
+          "text": "Hardcoded bearer token is identified as Critical or High"
+        },
+        {
+          "id": "1c",
+          "text": "Vulnerability Table has at least 3 rows"
+        },
+        {
+          "id": "1d",
+          "text": "At least one Exploit PoC with concrete adversarial input is present"
+        },
+        {
+          "id": "1e",
+          "text": "Hardened Rewrite section is present with substantial content"
+        },
+        {
+          "id": "1f",
+          "text": "Transparency directive flagged as instruction leakage vulnerability"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "rag-indirect-injection-audit",
+      "prompt": "I have a RAG-based document assistant. Can you review this system prompt for injection risks? [see evals/files/vulnerable_rag.txt]",
+      "expected_output": "CRITICAL overall risk. Identifies document instruction following (Critical), web search injection (Critical), directory exfiltration risk (Critical). Exploit PoC demonstrates document-based injection.",
+      "files": [
+        "evals/files/vulnerable_rag.txt"
+      ],
+      "assertions": [
+        {
+          "id": "2a",
+          "text": "Overall Risk is rated CRITICAL or HIGH"
+        },
+        {
+          "id": "2b",
+          "text": "Indirect/environmental injection via document trust is identified"
+        },
+        {
+          "id": "2c",
+          "text": "Web search is flagged as an injection surface"
+        },
+        {
+          "id": "2d",
+          "text": "Exploit PoC demonstrates document-based injection"
+        },
+        {
+          "id": "2e",
+          "text": "Hardened Rewrite includes a retrieved content policy"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "clean-prompt-no-false-positives",
+      "prompt": "Can you check this IT helpdesk bot prompt for any security issues? [see evals/files/clean_prompt.txt]",
+      "expected_output": "LOW or CLEAN overall risk. Zero Critical or High findings. Acknowledges existing defensive measures. Does not fabricate vulnerabilities.",
+      "files": [
+        "evals/files/clean_prompt.txt"
+      ],
+      "assertions": [
+        {
+          "id": "3a",
+          "text": "Overall Risk is NOT rated CRITICAL or HIGH"
+        },
+        {
+          "id": "3b",
+          "text": "Zero Critical findings are reported"
+        },
+        {
+          "id": "3c",
+          "text": "Zero High findings are reported"
+        },
+        {
+          "id": "3d",
+          "text": "Report acknowledges existing defensive measures positively"
+        },
+        {
+          "id": "3e",
+          "text": "No fabricated vulnerabilities for defensive features"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "instruction-leakage-with-credentials",
+      "prompt": "Here is our developer assistant prompt. Please check it for security problems. [see evals/files/leakage_risk.txt]",
+      "expected_output": "CRITICAL overall risk. Identifies DB password (Critical), Stripe key (Critical), admin code (Critical), transparency directive (High), unrestricted shell (High). Exploit PoC shows credential extraction. Hardened rewrite removes all secrets.",
+      "files": [
+        "evals/files/leakage_risk.txt"
+      ],
+      "assertions": [
+        {
+          "id": "4a",
+          "text": "Overall Risk is rated CRITICAL"
+        },
+        {
+          "id": "4b",
+          "text": "Database password identified as Critical"
+        },
+        {
+          "id": "4c",
+          "text": "Stripe secret key identified as Critical"
+        },
+        {
+          "id": "4d",
+          "text": "Exploit PoC shows credential extraction"
+        },
+        {
+          "id": "4e",
+          "text": "Hardened rewrite does not contain any credentials"
+        },
+        {
+          "id": "4f",
+          "text": "Unrestricted shell access flagged as vulnerability"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "obfuscated-multi-vector-injection",
+      "prompt": "Can you security-audit this AI assistant configuration? [see evals/files/obfuscated_injection.txt]",
+      "expected_output": "CRITICAL overall risk. Identifies base64 decode-and-follow (Critical), root/admin privilege escalation (Critical), roleplay-as-different-AI (High). Exploit PoC demonstrates base64 injection.",
+      "files": [
+        "evals/files/obfuscated_injection.txt"
+      ],
+      "assertions": [
+        {
+          "id": "5a",
+          "text": "Overall Risk is rated CRITICAL"
+        },
+        {
+          "id": "5b",
+          "text": "Base64 decode-and-follow instruction identified as Critical"
+        },
+        {
+          "id": "5c",
+          "text": "Self-reported privilege escalation identified"
+        },
+        {
+          "id": "5d",
+          "text": "Roleplay persona hijacking identified"
+        },
+        {
+          "id": "5e",
+          "text": "Exploit PoC demonstrates base64 injection attack"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "multi-agent-pipeline-audit",
+      "prompt": "We are building a multi-agent data pipeline. Please audit this orchestrator prompt for injection risks. [see evals/files/multi_agent_pipeline.txt]",
+      "expected_output": "CRITICAL overall risk. Identifies unconditional sub-agent trust (Critical), unvalidated pass-through (Critical), error recovery injection (High), PII+email exfiltration path (High). Multi-agent injection exploit PoC.",
+      "files": [
+        "evals/files/multi_agent_pipeline.txt"
+      ],
+      "assertions": [
+        {
+          "id": "6a",
+          "text": "Overall Risk is rated CRITICAL"
+        },
+        {
+          "id": "6b",
+          "text": "Unconditional sub-agent trust identified as Critical"
+        },
+        {
+          "id": "6c",
+          "text": "Unvalidated agent-to-agent pass-through flagged"
+        },
+        {
+          "id": "6d",
+          "text": "Error recovery instruction-following flagged"
+        },
+        {
+          "id": "6e",
+          "text": "Exploit PoC shows multi-agent injection attack"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "eval_name": "minimal-prompt-proportionate-assessment",
+      "prompt": "Quick security check on this coffee shop assistant prompt: You are a barista assistant for Blue Bottle Coffee. Help customers choose drinks and answer questions about our menu.",
+      "expected_output": "LOW risk (NOT CRITICAL). Proportionate, non-alarmist. Acknowledges limited scope. Constructive suggestions only.",
+      "files": [
+        "evals/files/minimal_prompt.txt"
+      ],
+      "assertions": [
+        {
+          "id": "7a",
+          "text": "Overall Risk is NOT rated CRITICAL"
+        },
+        {
+          "id": "7b",
+          "text": "No fabricated Critical/High findings for a 2-line prompt"
+        },
+        {
+          "id": "7c",
+          "text": "Report acknowledges limited scope and low stakes"
+        },
+        {
+          "id": "7d",
+          "text": "Suggestions are constructive and proportionate"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "eval_name": "hardened-prompt-validation",
+      "prompt": "Please review this system prompt and validate whether its security measures are effective: Hera, CloudBuild Support Assistant [see evals/files/hardened_prompt.txt]",
+      "expected_output": "LOW or CLEAN risk. Zero Critical findings. Recognizes identity lock, input policy, and retrieved content policy as effective. Minor suggestions only.",
+      "files": [
+        "evals/files/hardened_prompt.txt"
+      ],
+      "assertions": [
+        {
+          "id": "8a",
+          "text": "Overall Risk is LOW or CLEAN (not CRITICAL or HIGH)"
+        },
+        {
+          "id": "8b",
+          "text": "Zero Critical findings reported"
+        },
+        {
+          "id": "8c",
+          "text": "Identity lock recognized as effective defense"
+        },
+        {
+          "id": "8d",
+          "text": "Retrieved content policy recognized as effective"
+        },
+        {
+          "id": "8e",
+          "text": "Any suggestions are minor and constructive (LOW/INFO)"
+        }
+      ]
+    }
+  ]
+}
