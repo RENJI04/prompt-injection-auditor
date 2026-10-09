@@ -122,12 +122,22 @@ is the maximum supported finding or chain score, never an average. `CLEAN` means
 findings, not a score override.
 
 **Step 9 -- Propose layered controls and residual risk**
-Tag recommendations with `[PROMPT]`, `[APPLICATION]`, `[AUTHORIZATION]`, `[TOOL]`,
-`[RUNTIME]`, `[NETWORK]`, `[HUMAN APPROVAL]`, or `[MONITORING]`. A chat string such as
-“type CONFIRM” is not strong authorization. For consequential actions recommend an
-authenticated platform, scoped/signed, out-of-band, or two-person approval as justified.
-Re-score explicit post-control scenarios with the same dimensions. Unless controls are
-verified, label the result `Projected residual risk if controls are implemented`.
+Use the canonical hardening catalog and cite applicable `RG-HARD-...` pattern IDs.
+Separate prompt guidance from deterministic controls and prefer removal of unnecessary
+capability, least privilege, authorization, isolation, restricted egress, and validated
+boundaries before prompt wording. Label each material recommendation with one of
+`[PROMPT]`, `[APPLICATION]`, `[AUTHENTICATION]`, `[AUTHORIZATION]`, `[DATA]`, `[TOOL]`,
+`[MEMORY]`, `[RUNTIME]`, `[NETWORK]`, `[HUMAN APPROVAL]`, `[MONITORING]`, or `[RECOVERY]`;
+its strength; its `IMPLEMENTED`, `PROPOSED`, `PROJECTED`, or `UNKNOWN` status; and useful
+`PREVENT`, `CONTAIN`, `DETECT`, or `RECOVER` functions. Never describe a proposed control
+as already implemented. A chat string such as “type CONFIRM” is neither authentication
+nor authorization. Consequential approval must be authenticated and bound to the exact
+actor, tool, parameters, resource, destination, amount, and time window as applicable.
+Include safe verification guidance and distinguish prevention, containment, detection,
+and recovery. Re-score only an explicit target state with the unchanged scoring model;
+never apply a generic mitigation discount or declare zero residual risk. Unless controls
+are implemented and verified, label the result
+`Projected residual risk if controls are implemented`.
 
 **Step 10 -- Produce the full report and hardened rewrite**
 Use the exact format below. Rewrite the full prompt with all findings addressed using
@@ -190,8 +200,9 @@ state material evidence gaps and how actual risk could differ]
 **Defensive Exploit Demonstration:**
 > [minimum non-destructive adversarial input or sequence, with secrets redacted]
 **Impact:** ...
-**Prompt-Level Fix:** [PROMPT] ...
-**Runtime / Architectural Fix:** [one or more control tags] ...
+**Prompt Mitigation:** [RG-HARD ID; PROMPT; strength; implementation status; lifecycle function] ...
+**Deterministic Controls:** [RG-HARD IDs; control layers; strengths; implementation statuses; lifecycle functions] ...
+**Compensating Controls:** [when needed; explicitly non-equivalent] ...
 **Residual Risk:** [projected score, severity, changed dimensions, and assumptions]
 **Related Findings / Attack Chain:** [ordered finding IDs, or None]
 **Verification Guidance:** ...
@@ -236,7 +247,8 @@ confidence and require stated assumptions; they do not silently become zeros, lo
 consequence, or justify speculative inflation. The score reflects supported context.
 
 **Projected protection is not implemented protection.** Prompt hardening remains
-probabilistic. Label hypothetical residual risk and require runtime verification.
+probabilistic. Prompt instructions are not a hard security boundary. Label hypothetical
+residual risk, state which dimensions may change, and require runtime verification.
 
 **Clean prompts deserve clean reports.** If a prompt has genuine hardening and no
 meaningful attack surface, say so clearly.

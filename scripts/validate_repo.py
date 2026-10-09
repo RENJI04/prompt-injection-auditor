@@ -69,6 +69,48 @@ REQUIRED_TECHNIQUE_IDS = {
 TECHNIQUE_ID_PATTERN = re.compile(
     r"RG-(?:PI|HC|PR|TL|ME|AG|RA|SC|EX|OU|RC|MI|MM)-[0-9]{3}"
 )
+HARDENING_ID_PATTERN = re.compile(
+    r"RG-HARD-(?:P|AUTHN|AUTHZ|DATA|TOOL|RUN|NET|MEM|AGENT|HITL|MON|REC|RES|OUT)-[0-9]{3}"
+)
+HARDENING_CONTROL_LAYERS = {
+    "PROMPT",
+    "APPLICATION",
+    "AUTHENTICATION",
+    "AUTHORIZATION",
+    "DATA",
+    "TOOL",
+    "MEMORY",
+    "RUNTIME",
+    "NETWORK",
+    "HUMAN APPROVAL",
+    "MONITORING",
+    "RECOVERY",
+}
+HARDENING_STRENGTHS = {
+    "GUIDANCE",
+    "MODEL-ENFORCED",
+    "APPLICATION-ENFORCED",
+    "PLATFORM-ENFORCED",
+    "EXTERNAL / INDEPENDENT ENFORCEMENT",
+}
+IMPLEMENTATION_STATUSES = {"IMPLEMENTED", "PROPOSED", "PROJECTED", "UNKNOWN"}
+SECURITY_FUNCTIONS = {"PREVENT", "CONTAIN", "DETECT", "RECOVER"}
+REQUIRED_HARDENING_FIELDS = (
+    "Control Layer",
+    "Strength",
+    "Security Functions",
+    "Implementation Status",
+    "Purpose",
+    "Threats Addressed",
+    "Applicable RenGuard Techniques",
+    "Implementation Guidance",
+    "Example",
+    "Limitations",
+    "Failure Modes",
+    "Verification Steps",
+    "Residual Risk",
+    "Related Patterns",
+)
 REQUIRED_TECHNIQUE_FIELDS = (
     "Category Family",
     "Definition",
@@ -146,6 +188,7 @@ class ValidationResult:
     eval_count: int = 0
     run_count: int = 0
     technique_count: int = 0
+    hardening_pattern_count: int = 0
 
 
 def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
@@ -760,6 +803,162 @@ def _validate_taxonomy(root: Path, errors: list[str]) -> int:
     return len(technique_ids)
 
 
+def _hardening_field(block: str, field_name: str) -> str | None:
+    match = re.search(
+        rf"^- \*\*{re.escape(field_name)}:\*\* (.+)$",
+        block,
+        re.MULTILINE,
+    )
+    return match.group(1).strip() if match else None
+
+
+def _validate_hardening_catalog(
+    root: Path,
+    technique_ids: set[str],
+    errors: list[str],
+) -> int:
+    relative_name = "references/hardening-patterns.md"
+    text = _read_text(root, relative_name, errors)
+    if text is None:
+        return 0
+
+    heading_pattern = re.compile(r"^### (RG-HARD-[^\s]+) — (.+)$", re.MULTILINE)
+    headings = list(heading_pattern.finditer(text))
+    parsed_ids = [match.group(1) for match in headings]
+
+    for line in text.splitlines():
+        if line.startswith("### RG-HARD-") and not heading_pattern.fullmatch(line):
+            errors.append(f"{relative_name}: malformed hardening pattern heading {line!r}")
+    for pattern_id in parsed_ids:
+        if not HARDENING_ID_PATTERN.fullmatch(pattern_id):
+            errors.append(f"{relative_name}: malformed hardening pattern ID {pattern_id!r}")
+        if parsed_ids.count(pattern_id) > 1:
+            errors.append(f"{relative_name}: duplicate hardening pattern ID {pattern_id}")
+
+    pattern_ids = set(parsed_ids)
+    parsed_layers: set[str] = set()
+    for index, match in enumerate(headings):
+        pattern_id = match.group(1)
+        block_end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+        block = text[match.end():block_end]
+        for field_name in REQUIRED_HARDENING_FIELDS:
+            if _hardening_field(block, field_name) is None:
+                errors.append(f"{relative_name}: {pattern_id} missing field {field_name!r}")
+
+        layer = _hardening_field(block, "Control Layer")
+        strength = _hardening_field(block, "Strength")
+        status = _hardening_field(block, "Implementation Status")
+        functions_text = _hardening_field(block, "Security Functions")
+        techniques_text = _hardening_field(block, "Applicable RenGuard Techniques")
+
+        if layer is not None:
+            parsed_layers.add(layer)
+            if layer not in HARDENING_CONTROL_LAYERS:
+                errors.append(
+                    f"{relative_name}: {pattern_id} has invalid control layer {layer!r}"
+                )
+        if strength is not None and strength not in HARDENING_STRENGTHS:
+            errors.append(
+                f"{relative_name}: {pattern_id} has invalid control strength {strength!r}"
+            )
+        if status is not None and status not in IMPLEMENTATION_STATUSES:
+            errors.append(
+                f"{relative_name}: {pattern_id} has invalid implementation status {status!r}"
+            )
+        if functions_text is not None:
+            functions = {value.strip() for value in functions_text.split(",")}
+            invalid_functions = sorted(functions - SECURITY_FUNCTIONS)
+            if not functions or invalid_functions:
+                errors.append(
+                    f"{relative_name}: {pattern_id} has invalid security function "
+                    f"{', '.join(invalid_functions) if invalid_functions else functions_text!r}"
+                )
+        if techniques_text is not None:
+            references = set(TECHNIQUE_ID_PATTERN.findall(techniques_text))
+            if not references:
+                errors.append(
+                    f"{relative_name}: {pattern_id} must reference a RenGuard technique"
+                )
+            for technique_id in sorted(references - technique_ids):
+                errors.append(
+                    f"{relative_name}: {pattern_id} references unknown RenGuard technique "
+                    f"{technique_id}"
+                )
+            broad_references = set(re.findall(r"RG-[A-Z]{2}-[0-9]{3}", techniques_text))
+            for technique_id in sorted(broad_references - references):
+                errors.append(
+                    f"{relative_name}: {pattern_id} references unknown RenGuard technique "
+                    f"{technique_id}"
+                )
+
+        if layer == "PROMPT" and strength not in {"GUIDANCE", "MODEL-ENFORCED"}:
+            errors.append(
+                f"{relative_name}: {pattern_id} prompt-only control is mislabeled as "
+                "deterministic or platform enforced"
+            )
+        if status in {"PROPOSED", "PROJECTED"} and re.search(
+            r"\b(?:this control|the control) (?:is|is already|has been) implemented\b",
+            block,
+            re.IGNORECASE,
+        ):
+            errors.append(
+                f"{relative_name}: {pattern_id} proposed/projected control is described as implemented"
+            )
+        residual_risk = _hardening_field(block, "Residual Risk") or ""
+        if re.search(
+            r"\b(?:zero residual risk|no residual risk|eliminates? (?:all )?risk)\b",
+            residual_risk,
+            re.IGNORECASE,
+        ):
+            errors.append(f"{relative_name}: {pattern_id} claims zero residual risk")
+
+    for layer in sorted(HARDENING_CONTROL_LAYERS - parsed_layers):
+        errors.append(f"{relative_name}: missing required control layer {layer!r}")
+
+    for fragment in (
+        "prompt instructions are not a hard security boundary",
+        "Pattern IDs are never reused or renumbered",
+        "Detection is not prevention",
+        "Projected residual risk if controls are implemented",
+    ):
+        if fragment.lower() not in text.lower():
+            errors.append(f"{relative_name}: missing hardening rule {fragment!r}")
+
+    hardening_consumers = (relative_name, "SKILL.md", *EXAMPLE_FILES)
+    for consumer in hardening_consumers:
+        consumer_text = text if consumer == relative_name else _read_text(root, consumer, errors)
+        if consumer_text is None:
+            continue
+        for reference in set(re.findall(r"RG-HARD-[A-Z]+-[0-9]+", consumer_text)):
+            if not HARDENING_ID_PATTERN.fullmatch(reference):
+                errors.append(f"{consumer}: malformed hardening pattern reference {reference!r}")
+            elif reference not in pattern_ids:
+                errors.append(f"{consumer}: unknown hardening pattern reference {reference}")
+        if re.search(
+            r"(?:type|just say)\s+[`\"'“”]?CONFIRM[`\"'“”]?"
+            r"[^\n.]{0,80}(?:is|provides?|acts as|authorizes?)\s+"
+            r"(?:authentication|authorization|the action)",
+            consumer_text,
+            re.IGNORECASE,
+        ):
+            errors.append(f"{consumer}: chat CONFIRM is presented as authentication/authorization")
+
+    skill_text = _read_text(root, "SKILL.md", errors)
+    if skill_text is not None:
+        if "(references/hardening-patterns.md)" not in skill_text:
+            errors.append("SKILL.md: missing hardening-patterns.md reference link")
+        for fragment in (
+            "**Prompt Mitigation:**",
+            "**Deterministic Controls:**",
+            "**Compensating Controls:**",
+            "**Verification Guidance:**",
+        ):
+            if fragment not in skill_text:
+                errors.append(f"SKILL.md: report template missing {fragment!r}")
+
+    return len(pattern_ids)
+
+
 def _validate_severity_pair(
     relative_name: str,
     score_text: str,
@@ -1160,6 +1359,9 @@ def validate_repository(root: Path) -> ValidationResult:
 
     _validate_readme_numbers(root, validation.errors)
     validation.technique_count = _validate_taxonomy(root, validation.errors)
+    validation.hardening_pattern_count = _validate_hardening_catalog(
+        root, REQUIRED_TECHNIQUE_IDS, validation.errors
+    )
     _validate_risk_reference(root, validation.errors)
     _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
     for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES):
@@ -1192,6 +1394,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"- eval definitions: {result.eval_count}")
     print(f"- benchmark runs: {result.run_count}")
     print(f"- RenGuard techniques: {result.technique_count}")
+    print(f"- hardening patterns: {result.hardening_pattern_count}")
     for configuration in CONFIGURATIONS:
         metrics = result.metrics[configuration]
         assertions = metrics["assertions"]

@@ -113,9 +113,9 @@ arbitrary network egress is not established.
 **Impact:** Attacker obtains a live transactions API credential and can attempt direct
 access to the customer transaction data within that credential's unknown runtime scope.
 
-**Prompt-Level Fix:** `[PROMPT]` Remove the token entirely; prompts must never contain
+**Prompt Mitigation:** `[PROMPT]` Remove the token entirely; prompts must never contain
 credentials.
-**Runtime / Architectural Fix:** `[APPLICATION] [AUTHORIZATION] [MONITORING]` Revoke and
+**Deterministic Controls:** `[APPLICATION] [AUTHORIZATION] [MONITORING]` Revoke and
 rotate the exposed credential, use a secrets manager outside model context, scope API
 access to the authenticated customer, and alert on anomalous credential use.
 **Residual Risk:** Projected 2.4 LOW if the token is rotated, removed from model context,
@@ -160,9 +160,9 @@ account questions, transactions, cards, and fraud reporting.'"
 **Security Weakness:** Disclosure is affirmatively authorized without separating safe
 capability descriptions from confidential configuration.
 **Preconditions:** Ordinary customer access.
-**Prompt-Level Fix:** `[PROMPT]` Replace the disclosure directive with the bounded
+**Prompt Mitigation:** `[PROMPT]` Replace the disclosure directive with the bounded
 capability response above.
-**Runtime / Architectural Fix:** `[APPLICATION]` Keep secrets and authorization data out
+**Deterministic Controls:** `[APPLICATION]` Keep secrets and authorization data out
 of model context; do not rely on refusal text to protect credentials.
 **Residual Risk:** Projected 4.8 MEDIUM after prompt-only hardening because model-visible
 hidden context may still be elicited probabilistically.
@@ -202,8 +202,8 @@ and `RG-F-002`, it gives an attacker a direct path to credential extraction.
 **Preconditions:** Ordinary customer access and a self-asserted role.
 **Blast Radius:** SINGLE USER/RESOURCE (2) is confirmed; broader production scope is
 unknown and is not silently scored as organization-wide.
-**Prompt-Level Fix:** `[PROMPT]` Remove the conversational test-mode bypass.
-**Runtime / Architectural Fix:** `[AUTHORIZATION] [APPLICATION]` Use authenticated roles
+**Prompt Mitigation:** `[PROMPT]` Remove the conversational test-mode bypass.
+**Deterministic Controls:** `[AUTHORIZATION] [APPLICATION]` Use authenticated roles
 and separate non-production deployments; never let model interpretation grant access.
 **Residual Risk:** Projected 2.8 LOW if the bypass is removed and authorization is
 enforced outside the model.
@@ -241,10 +241,10 @@ NovaPay's direct services."
 **Impact:** Legal liability, reputational risk, and an expanded attack surface for
 goal hijacking via "financial emergency" framing.
 
-**Prompt-Level Fix:** `[PROMPT]` "You only assist with NovaPay account questions, transaction disputes, card
+**Prompt Mitigation:** `[PROMPT]` "You only assist with NovaPay account questions, transaction disputes, card
 management, and fraud reporting. For all other financial questions, direct customers
 to a licensed financial advisor."
-**Runtime / Architectural Fix:** `[MONITORING]` Review repeated scope-drift attempts and
+**Deterministic Controls:** `[MONITORING]` Review repeated scope-drift attempts and
 high-risk advice topics.
 **Residual Risk:** Projected 2.7 LOW after scope controls, subject to behavioral testing.
 
@@ -276,10 +276,10 @@ required for amounts under $50.
 
 **Impact:** Systematic financial abuse through scripted emotional manipulation.
 
-**Prompt-Level Fix:** `[PROMPT]` "You may offer to escalate a billing concern to the retention team. You cannot
+**Prompt Mitigation:** `[PROMPT]` "You may offer to escalate a billing concern to the retention team. You cannot
 issue credits directly. Create a support ticket and the retention team will follow up
 within 24 hours."
-**Runtime / Architectural Fix:** `[AUTHORIZATION] [TOOL] [MONITORING]` Remove direct
+**Deterministic Controls:** `[AUTHORIZATION] [TOOL] [MONITORING]` Remove direct
 credit capability or enforce authenticated eligibility, rate limits, and audit review.
 **Residual Risk:** Projected 2.5 LOW if credit issuance is removed from the assistant.
 
@@ -329,14 +329,24 @@ customer session only. Do not share raw API responses with customers.
 
 ### Defensive Recommendations
 
-1. **[APPLICATION] [AUTHORIZATION] Secrets management:** Rotate the exposed production token immediately. Move all
-   credentials to a secrets vault with runtime injection.
-2. **[APPLICATION] [AUTHORIZATION] Test environment separation:** Create a separate system prompt for engineer testing
-   -- never use identity claims as a bypass mechanism.
-3. **[APPLICATION] [MONITORING] Output filtering:** Apply a post-processing filter that blocks responses containing
-   API key patterns (`sk_`, `Bearer`, etc.).
-4. **[MONITORING] Red-team testing schedule:** Run quarterly adversarial tests including credential
-   extraction attempts and privilege escalation attacks.
+All controls below are **PROPOSED**; the supplied prompt does not prove they exist.
+
+1. **Prompt mitigation — `RG-HARD-P-001`** `[PROMPT]` `MODEL-ENFORCED`
+   `PREVENT`: retain the authority-aware user-request boundary in the rewrite. Verify
+   that legitimate account-support requests work while chat claims of admin status do not
+   alter identity or permissions.
+2. **Secret isolation — `RG-HARD-DATA-001`** `[DATA]` `PLATFORM-ENFORCED`
+   `PREVENT, CONTAIN`: rotate the exposed token and move credentials to a vault-backed
+   adapter outside model context. Verify traces and model-visible context contain no raw
+   secret. Rotation and isolation, not the prompt instruction, protect the credential.
+3. **Identity and tenant authorization — `RG-HARD-AUTHN-001`,
+   `RG-HARD-AUTHZ-001`** `[AUTHENTICATION] [AUTHORIZATION]`
+   `PLATFORM-ENFORCED / APPLICATION-ENFORCED` `PREVENT`: derive identity from the
+   authenticated session and enforce record ownership at the API. Test another tenant's
+   transaction with a safe account and verify denial.
+4. **Audit trail — `RG-HARD-MON-001`** `[MONITORING]` `APPLICATION-ENFORCED`
+   `DETECT`: log authorization decisions and secret-access events without raw secrets.
+   Verify both allowed and denied test requests produce correlated, redacted events.
 
 ---
 

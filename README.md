@@ -63,6 +63,27 @@ Projected residual risk is also distinct from implemented protection. A post-con
 score is labeled projected unless the named prompt, authorization, tool, runtime,
 network, human-approval, and monitoring controls are evidenced and verified.
 
+## Defense-in-Depth Hardening
+
+RenGuard does not treat prompt rewriting as the primary security solution. Prompt
+guidance is useful for defining scope, authority, and safe behavior, but prompt
+instructions are not a hard security boundary. Authentication, authorization, tenant
+isolation, secret handling, tool permissions, sandboxing, egress policy, and sensitive
+approvals should be enforced outside the model wherever possible.
+
+| Control type | What it contributes | Security boundary |
+|---|---|---|
+| Prompt guidance | Authority, scope, untrusted-content handling, refusal behavior | Model-interpreted and probabilistic |
+| Application enforcement | Identity-aware authorization, schemas, business rules, tool mediation | Deterministic when correctly implemented |
+| Runtime/platform enforcement | Sandboxing, IAM, resource limits, network egress, independent approval | Prevents or contains prohibited effects outside the model |
+
+The canonical [hardening catalog](references/hardening-patterns.md) defines 12 control
+layers, five enforcement-strength levels, implementation status, prevention/containment/
+detection/recovery functions, stable `RG-HARD-...` pattern IDs, verification guidance,
+compensating controls, and reusable defense-in-depth bundles. A proposed control is not
+reported as implemented, and mitigation strength does not produce a generic score
+discount. Residual risk remains after every layer.
+
 ## Taxonomy Architecture
 
 RenGuard uses three layers:
@@ -147,7 +168,7 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   ├── owasp-llm-2026.md             # OWASP LLM 2026 reference
 │   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
 │   ├── risk-scoring.md                # Canonical RenGuard Risk Score specification
-│   └── hardening-patterns.md         # Defensive prompt patterns
+│   └── hardening-patterns.md         # Canonical defense-in-depth catalog
 ├── examples/                         # Worked audit examples
 ├── evals/
 │   ├── evals.json                    # Current RenGuard v2-alpha eval definitions
@@ -211,7 +232,8 @@ references, result arithmetic, pass rates, recomputed micro and macro summaries,
 historical source-commit provenance, known contradictory notes, documented headline
 values, important relative links, official framework IDs/names, unique RenGuard IDs,
 valid cross-references, the risk formula and bands, scoring dimensions, finding IDs,
-confidence/exploitability labels, and worked-example score consistency.
+confidence/exploitability labels, hardening IDs/layers/strength/status/functions, and
+worked-example score and remediation consistency.
 
 These commands do **not** execute prompts against a live model and do not reproduce the
 historical benchmark. A live model evaluation and benchmark runner is deferred to a
@@ -219,8 +241,8 @@ later phase.
 
 ## What RenGuard Does Not Yet Do
 
-Phase 3 implements classification, formal audit reasoning, and deterministic risk
-assessment, not specialized detection engines.
+Phase 4 implements classification, formal audit reasoning, deterministic risk
+assessment, and a defense-in-depth remediation catalog, not specialized detection engines.
 RenGuard does not yet implement dedicated MCP, RAG, memory, multimodal, output-security,
 or supply-chain scanners; provider/framework profiles; SARIF;
 large eval expansion; mutation testing; holdout suites; live multi-model execution; or
@@ -230,7 +252,8 @@ functionality.
 The current prompt-level skill also does not directly test application code, model
 weights, network controls, tool implementations, UI output encoding, or stochastic
 attack success rates. Those controls require system-level testing beyond prompt review.
-Phase 3 scoring and report behavior have not been measured by a new live model benchmark.
+Phase 3 scoring and Phase 4 hardening behavior have not been measured by a new live model
+benchmark.
 
 ## Contributing
 

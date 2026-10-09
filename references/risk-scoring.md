@@ -379,16 +379,15 @@ egress controls, monitoring, and human governance.
 
 ## Control classification
 
-Tag each recommendation with one or more control classes:
+Use the 12 control layers, strength model, implementation statuses, and lifecycle
+functions defined in the [hardening catalog](hardening-patterns.md). Authentication and
+authorization remain distinct; prompt guidance and model enforcement are never labeled
+as deterministic application or platform enforcement.
 
-- `[PROMPT]` — instruction hierarchy, scope, and untrusted-content handling.
-- `[APPLICATION]` — application logic, parsing, validation, or data flow.
-- `[AUTHORIZATION]` — authenticated identity and resource/action authorization.
-- `[TOOL]` — capability scoping and parameter/destination constraints.
-- `[RUNTIME]` — sandboxing, isolation, policy enforcement, budgets, or circuit breakers.
-- `[NETWORK]` — ingress/egress and destination controls.
-- `[HUMAN APPROVAL]` — authenticated platform or out-of-band approval.
-- `[MONITORING]` — logs, alerts, anomaly detection, and review.
+Controls change only the dimensions supported by the explicit target architecture. For
+example, authorization may reduce `V`, `T`, and `B`; egress enforcement may reduce `G`
+and `B`; sandboxing may reduce `T`, `B`, and `R`; memory lifetime controls may reduce
+`S`; monitoring may reduce `X`. Control strength never creates a generic score discount.
 
 A chat message such as “type CONFIRM” is only an interaction safeguard, not strong
 authorization. Consequential actions should use authenticated platform confirmation,

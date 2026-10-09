@@ -143,6 +143,106 @@ class RepositoryValidationTests(unittest.TestCase):
         )
         self.assertTrue(any("missing mandatory framework entry ASI10" in error for error in errors))
 
+    def test_rejects_duplicate_hardening_pattern_id(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "### RG-HARD-P-002 — Scope, confidentiality, and refusal guidance",
+            "### RG-HARD-P-001 — Scope, confidentiality, and refusal guidance",
+        )
+        self.assertTrue(any("duplicate hardening pattern ID" in error for error in errors))
+
+    def test_rejects_malformed_hardening_pattern_id(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "### RG-HARD-P-001 — Authority-aware instruction hierarchy",
+            "### RG-HARD-P-01 — Authority-aware instruction hierarchy",
+        )
+        self.assertTrue(any("malformed hardening pattern ID" in error for error in errors))
+
+    def test_rejects_unknown_hardening_technique_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "`RG-PI-001`, `RG-PI-002`, `RG-PI-003`, `RG-PI-004`",
+            "`RG-PI-999`, `RG-PI-002`, `RG-PI-003`, `RG-PI-004`",
+        )
+        self.assertTrue(any("unknown RenGuard technique RG-PI-999" in error for error in errors))
+
+    def test_rejects_unknown_example_hardening_pattern_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "`RG-HARD-P-001`",
+            "`RG-HARD-P-999`",
+        )
+        self.assertTrue(
+            any("unknown hardening pattern reference RG-HARD-P-999" in error for error in errors)
+        )
+
+    def test_rejects_invalid_hardening_control_layer(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Control Layer:** PROMPT",
+            "- **Control Layer:** CONVERSATION",
+        )
+        self.assertTrue(any("invalid control layer" in error for error in errors))
+
+    def test_rejects_invalid_hardening_strength(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Strength:** MODEL-ENFORCED",
+            "- **Strength:** MAGIC-ENFORCED",
+        )
+        self.assertTrue(any("invalid control strength" in error for error in errors))
+
+    def test_rejects_invalid_implementation_status(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Implementation Status:** PROPOSED",
+            "- **Implementation Status:** ASSUMED",
+        )
+        self.assertTrue(any("invalid implementation status" in error for error in errors))
+
+    def test_rejects_invalid_security_function(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Security Functions:** PREVENT",
+            "- **Security Functions:** GUARANTEE",
+        )
+        self.assertTrue(any("invalid security function" in error for error in errors))
+
+    def test_rejects_prompt_control_mislabeled_as_platform_enforced(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Strength:** MODEL-ENFORCED",
+            "- **Strength:** PLATFORM-ENFORCED",
+        )
+        self.assertTrue(any("prompt-only control is mislabeled" in error for error in errors))
+
+    def test_rejects_chat_confirm_presented_as_authorization(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "Chat confirmation such as “type CONFIRM”; it is a usability cue, not "
+            "authentication or authorization.",
+            "Chat confirmation such as “type CONFIRM authorizes the action.”",
+        )
+        self.assertTrue(any("chat CONFIRM is presented" in error for error in errors))
+
+    def test_rejects_proposed_control_described_as_implemented(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Purpose:** Keep task instructions within authority granted by trusted policy.",
+            "- **Purpose:** Keep task instructions within authority granted by trusted "
+            "policy. The control is implemented.",
+        )
+        self.assertTrue(any("proposed/projected control is described as implemented" in error for error in errors))
+
+    def test_rejects_zero_residual_risk_claim(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/hardening-patterns.md",
+            "- **Residual Risk:** Model behavior remains probabilistic; pair with authorization and tool mediation.",
+            "- **Residual Risk:** Zero residual risk after this pattern.",
+        )
+        self.assertTrue(any("claims zero residual risk" in error for error in errors))
+
     def test_rejects_out_of_range_risk_score(self) -> None:
         errors = self._errors_after_text_replacement(
             "examples/01-chatbot-prompt.md",

@@ -5,6 +5,28 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 4 defense-in-depth hardening
+
+- Rebuilt the remediation catalog around 12 control layers and stable, non-renumbering
+  `RG-HARD-...` pattern IDs rather than prompt snippets alone.
+- Added explicit control-strength, implementation-status, and PREVENT / CONTAIN /
+  DETECT / RECOVER classifications with verification and residual-risk guidance.
+- Formalized trusted identity, deny-by-default authorization, least privilege, tool
+  schemas, secret isolation, sandboxing, egress restrictions, and secure failure.
+- Distinguished chat confirmation from authenticated, parameter-bound approval and
+  documented approval TOCTOU defenses.
+- Added generic memory and inter-agent boundaries, privacy-aware monitoring, rollback,
+  revocation, resource limits, safe output handling, and compensating controls.
+- Added reusable defense-in-depth bundles and an anti-pattern catalog for controls that
+  look strong but are not deterministic security boundaries.
+- Updated the core skill, README, and three examples to separate prompt mitigations from
+  proposed deterministic controls and to cite verifiable hardening patterns.
+- Extended offline validation and standard-library tests for the Phase 4 hardening
+  schema, references, labels, status honesty, prompt-only enforcement claims, approval
+  wording, and zero-residual-risk claims.
+- Left the current eval corpus and historical v1 benchmark unchanged; no live model
+  benchmark was run for Phase 4.
+
 ### Phase 3 audit engine and risk scoring
 
 - Added the project-specific, non-CVSS RenGuard Risk Score with 12 explicit 0–4
