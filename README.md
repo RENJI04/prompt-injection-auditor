@@ -19,9 +19,9 @@ turn this repository into a web application, backend service, or standalone SaaS
 ## Current Scope
 
 RenGuard currently audits system prompts, AI application instructions, conversation
-logs, and agent specifications for the original project's eight prompt-security
-categories. It produces a structured report with calibrated findings, concrete exploit
-demonstrations, a hardened rewrite, and defense-in-depth recommendations.
+logs, and agent specifications using 38 stable, provider-neutral RenGuard technique
+IDs. It produces a structured report with calibrated findings, OWASP mappings, concrete
+exploit demonstrations, a hardened rewrite, and defense-in-depth recommendations.
 
 The audit methodology is designed to be model and provider neutral. It can be applied
 to GPT-, Claude-, Gemini-, Llama-, Mistral-, DeepSeek-, Qwen-, local/self-hosted,
@@ -29,25 +29,41 @@ custom, unknown, and mixed-model architectures. This is a design property, not a
 that RenGuard has been installed on or empirically benchmarked against every listed
 provider. Host-specific skill installation and runtime compatibility vary by platform.
 
-The current v1 taxonomy includes mappings to the OWASP LLM Top 10 taxonomy used by the
-original project. These are approximate audit cross-references, not proof of complete
-technical coverage. Taxonomy modernization is deferred to Phase 2.
+The current taxonomy maps findings to the
+[OWASP Top 10 for LLM Applications 2026](references/owasp-llm-2026.md) and, only for
+agentic targets, the
+[OWASP Top 10 for Agentic Applications 2026](references/owasp-agentic-2026.md).
+Framework mapping support and empirical detection coverage are separate: the current
+eight-eval suite does not test every technique or every OWASP category.
 
-## What It Detects
+## Taxonomy Architecture
 
-| # | Vulnerability Category | Original v1 OWASP Mapping | Severity Range |
-|---|------------------------|---------------------------|----------------|
-| 1 | Direct Prompt Injection | LLM01 | CRITICAL–HIGH |
-| 2 | Indirect / Environmental Injection | LLM01, LLM03 | CRITICAL–HIGH |
-| 3 | Role Confusion & Persona Hijacking | LLM01 | CRITICAL–HIGH |
-| 4 | Instruction Leakage | LLM02, LLM07 | CRITICAL–MEDIUM |
-| 5 | Goal Hijacking | LLM01, LLM09 | CRITICAL–HIGH |
-| 6 | Context Overflow & Memory Poisoning | LLM04, LLM10 | HIGH–MEDIUM |
-| 7 | Delimiter & Format Escaping | LLM05 | HIGH–MEDIUM |
-| 8 | Multi-Agent & Tool-Call Injection | LLM06, LLM08 | CRITICAL–HIGH |
+RenGuard uses three layers:
 
-See the [v1 vulnerability taxonomy](references/vulnerability-taxonomy.md) for the
-definitions and original cross-reference table.
+1. **RenGuard techniques** — stable `RG-` IDs used to classify findings.
+2. **OWASP LLM Top 10 2026** — broad risk-category cross-references for AI applications.
+3. **OWASP Agentic Top 10 2026** — conditional cross-references for systems with tools,
+   planning, memory, delegation, autonomy, inter-agent communication, or side effects.
+
+| Technique family | Prefix | Techniques | Current coverage posture |
+|---|---|---:|---|
+| Prompt Injection | `RG-PI` | 10 | CORE and PARTIAL |
+| Hidden Context / Information Exposure | `RG-HC` | 4 | CORE |
+| Privilege / Authority | `RG-PR` | 3 | CORE |
+| Tools / Actions | `RG-TL` | 5 | CORE and PARTIAL |
+| Memory / Context | `RG-ME` | 2 | PARTIAL |
+| Agent / Multi-Agent | `RG-AG` | 5 | CORE and PARTIAL |
+| Retrieval / Vector / RAG | `RG-RA` | 3 | PARTIAL and PLANNED |
+| Supply Chain | `RG-SC` | 1 | PARTIAL |
+| Execution / Code | `RG-EX` | 1 | PARTIAL |
+| Output Handling | `RG-OU` | 1 | PARTIAL |
+| Resource / Consumption | `RG-RC` | 1 | PARTIAL |
+| Misinformation / Grounding | `RG-MI` | 1 | PARTIAL |
+| Multimodal | `RG-MM` | 1 | PLANNED |
+
+See the [taxonomy methodology and v1→v2 crosswalk](references/vulnerability-taxonomy.md)
+and the [canonical technique catalog](references/renguard-techniques.md). `CORE`,
+`PARTIAL`, and `PLANNED` describe available audit guidance, not benchmark percentages.
 
 ## How to Use the Skill
 
@@ -78,6 +94,9 @@ Overall Risk: CRITICAL
 Findings: 5 vulnerabilities (3 Critical, 2 High, 0 Medium, 0 Low)
 
 Finding #1 -- Hardcoded Production API Token [CRITICAL]
+RenGuard Technique: RG-HC-003 — Credential or Secret Exposure
+OWASP LLM 2026: LLM02:2026 Sensitive Information Disclosure
+OWASP Agentic 2026: ASI03 Identity & Privilege Abuse
 Impact: An attacker may obtain a transactions API credential from the prompt.
 ```
 
@@ -88,12 +107,15 @@ human approval, secrets management, and monitoring where the audited system need
 ## Repository Structure
 
 ```text
-prompt-injection-auditor/             # Remote repository name remains unchanged in Phase 1
+prompt-injection-auditor/             # Remote repository name remains unchanged
 ├── SKILL.md                          # Core RenGuard auditing skill
 ├── README.md
 ├── CHANGELOG.md
 ├── references/
-│   ├── vulnerability-taxonomy.md     # Original v1 categories and mappings
+│   ├── vulnerability-taxonomy.md     # Methodology and v1→v2 crosswalk
+│   ├── renguard-techniques.md        # Canonical 38-technique catalog
+│   ├── owasp-llm-2026.md             # OWASP LLM 2026 reference
+│   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
 │   └── hardening-patterns.md         # Defensive prompt patterns
 ├── examples/                         # Worked audit examples
 ├── evals/
@@ -145,8 +167,8 @@ preserve provenance.
 
 ## Repository Validation
 
-The eval definitions and historical results are declarative data. Phase 1 adds a
-deterministic, Python-standard-library validator for their internal consistency:
+The eval definitions, taxonomies, and historical results are declarative data. The
+deterministic validator uses only the Python standard library:
 
 ```sh
 python scripts/validate_repo.py
@@ -156,7 +178,8 @@ python -m unittest discover -s tests
 The validator checks JSON parsing, unique IDs, fixture existence, benchmark/eval
 references, result arithmetic, pass rates, recomputed micro and macro summaries,
 historical source-commit provenance, known contradictory notes, documented headline
-values, and important relative links.
+values, important relative links, official framework IDs/names, unique RenGuard IDs,
+and valid cross-references.
 
 These commands do **not** execute prompts against a live model and do not reproduce the
 historical benchmark. A live model evaluation and benchmark runner is deferred to a
@@ -164,9 +187,10 @@ later phase.
 
 ## What RenGuard Does Not Yet Do
 
-Phase 1 does not implement the planned OWASP 2026 taxonomy migration, agentic taxonomy,
-MCP/RAG/memory/multimodal engines, provider-specific profiles, advanced scoring, SARIF,
-large eval expansion, mutation testing, holdout suites, live multi-model execution, or
+Phase 2 implements classification and mapping, not specialized detection engines.
+RenGuard does not yet implement dedicated MCP, RAG, memory, multimodal, output-security,
+or supply-chain scanners; provider/framework profiles; advanced numeric scoring; SARIF;
+large eval expansion; mutation testing; holdout suites; live multi-model execution; or
 statistical confidence intervals. Future work is described as planned work, not current
 functionality.
 

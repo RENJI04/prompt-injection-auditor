@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate RenGuard's declarative evals and historical benchmark artifact."""
+"""Validate RenGuard's taxonomy, evals, and historical benchmark artifact."""
 
 from __future__ import annotations
 
@@ -19,6 +19,85 @@ ROUNDING_TOLERANCE = 0.000051
 CONFIGURATIONS = ("with_skill", "without_skill")
 HISTORICAL_SOURCE_COMMIT = "c2e8de497b7550ca3ca4df081efae27ddd28d582"
 CURRENT_CORPUS_STATUS = "current_renguard_v2_alpha"
+OWASP_LLM_2026 = {
+    "LLM01:2026": "Prompt Injection",
+    "LLM02:2026": "Sensitive Information Disclosure",
+    "LLM03:2026": "Excessive Agency",
+    "LLM04:2026": "Supply Chain",
+    "LLM05:2026": "Data and Model Poisoning",
+    "LLM06:2026": "Unbounded Consumption",
+    "LLM07:2026": "Misinformation",
+    "LLM08:2026": "Hidden Context Exposure",
+    "LLM09:2026": "Vector and Embedding Weaknesses",
+    "LLM10:2026": "Improper Output Handling",
+}
+OWASP_AGENTIC_2026 = {
+    "ASI01": "Agent Goal Hijack",
+    "ASI02": "Tool Misuse & Exploitation",
+    "ASI03": "Identity & Privilege Abuse",
+    "ASI04": "Agentic Supply Chain Vulnerabilities",
+    "ASI05": "Unexpected Code Execution",
+    "ASI06": "Memory & Context Poisoning",
+    "ASI07": "Insecure Inter-Agent Communication",
+    "ASI08": "Cascading Failures",
+    "ASI09": "Human-Agent Trust Exploitation",
+    "ASI10": "Rogue Agents",
+}
+TECHNIQUE_FAMILY_COUNTS = {
+    "PI": 10,
+    "HC": 4,
+    "PR": 3,
+    "TL": 5,
+    "ME": 2,
+    "AG": 5,
+    "RA": 3,
+    "SC": 1,
+    "EX": 1,
+    "OU": 1,
+    "RC": 1,
+    "MI": 1,
+    "MM": 1,
+}
+REQUIRED_TECHNIQUE_IDS = {
+    f"RG-{family}-{number:03d}"
+    for family, count in TECHNIQUE_FAMILY_COUNTS.items()
+    for number in range(1, count + 1)
+}
+TECHNIQUE_ID_PATTERN = re.compile(
+    r"RG-(?:PI|HC|PR|TL|ME|AG|RA|SC|EX|OU|RC|MI|MM)-[0-9]{3}"
+)
+REQUIRED_TECHNIQUE_FIELDS = (
+    "Category Family",
+    "Definition",
+    "Typical attack sources",
+    "Detection signals",
+    "Preconditions",
+    "Security impact",
+    "Example attack pattern",
+    "Primary OWASP LLM 2026",
+    "Secondary OWASP LLM 2026",
+    "OWASP Agentic 2026",
+    "Commonly confused with",
+    "Boundary / non-example",
+    "Prompt-level mitigations",
+    "Application/runtime mitigations",
+    "Current RenGuard Coverage Status",
+)
+TAXONOMY_FILES = (
+    "references/vulnerability-taxonomy.md",
+    "references/renguard-techniques.md",
+    "references/owasp-llm-2026.md",
+    "references/owasp-agentic-2026.md",
+    "references/hardening-patterns.md",
+)
+CURRENT_TAXONOMY_CONSUMERS = (
+    "README.md",
+    "SKILL.md",
+    *TAXONOMY_FILES,
+    "examples/01-chatbot-prompt.md",
+    "examples/02-rag-agent-prompt.md",
+    "examples/03-tool-using-agent-prompt.md",
+)
 
 
 @dataclass
@@ -27,6 +106,7 @@ class ValidationResult:
     metrics: dict[str, dict[str, float | int]] = field(default_factory=dict)
     eval_count: int = 0
     run_count: int = 0
+    technique_count: int = 0
 
 
 def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
@@ -440,6 +520,165 @@ def _validate_readme_numbers(root: Path, errors: list[str]) -> None:
             errors.append(f"README.md: missing historical benchmark value/label {fragment!r}")
 
 
+def _read_text(root: Path, relative_name: str, errors: list[str]) -> str | None:
+    try:
+        return (root / relative_name).read_text(encoding="utf-8")
+    except OSError as exc:
+        errors.append(f"{relative_name}: cannot read file: {exc}")
+        return None
+
+
+def _validate_framework_entries(
+    text: str,
+    relative_name: str,
+    heading_pattern: re.Pattern[str],
+    expected_entries: dict[str, str],
+    errors: list[str],
+) -> None:
+    entries = heading_pattern.findall(text)
+    by_id: dict[str, list[str]] = {}
+    for entry_id, name in entries:
+        by_id.setdefault(entry_id, []).append(name.strip())
+
+    for entry_id, expected_name in expected_entries.items():
+        names = by_id.get(entry_id, [])
+        if not names:
+            errors.append(f"{relative_name}: missing mandatory framework entry {entry_id}")
+        elif len(names) > 1:
+            errors.append(f"{relative_name}: duplicate framework entry {entry_id}")
+        elif names[0] != expected_name:
+            errors.append(
+                f"{relative_name}: {entry_id} name {names[0]!r} must be {expected_name!r}"
+            )
+
+    for entry_id in sorted(set(by_id) - set(expected_entries)):
+        errors.append(f"{relative_name}: unknown framework entry {entry_id}")
+
+
+def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
+    relative_name = "references/renguard-techniques.md"
+    heading_pattern = re.compile(r"^## (RG-[^\s]+) — (.+)$", re.MULTILINE)
+    heading_matches = list(heading_pattern.finditer(text))
+    parsed_ids = [match.group(1) for match in heading_matches]
+
+    for line in text.splitlines():
+        if line.startswith("## RG-") and not heading_pattern.fullmatch(line):
+            errors.append(f"{relative_name}: malformed RenGuard technique heading {line!r}")
+
+    for technique_id in parsed_ids:
+        if not TECHNIQUE_ID_PATTERN.fullmatch(technique_id):
+            errors.append(f"{relative_name}: malformed RenGuard technique ID {technique_id!r}")
+        if parsed_ids.count(technique_id) > 1:
+            errors.append(f"{relative_name}: duplicate RenGuard technique ID {technique_id}")
+
+    technique_ids = set(parsed_ids)
+    for technique_id in sorted(REQUIRED_TECHNIQUE_IDS - technique_ids):
+        errors.append(f"{relative_name}: missing required RenGuard technique {technique_id}")
+    for technique_id in sorted(technique_ids - REQUIRED_TECHNIQUE_IDS):
+        errors.append(f"{relative_name}: undocumented RenGuard technique ID {technique_id}")
+
+    for index, match in enumerate(heading_matches):
+        technique_id = match.group(1)
+        block_end = (
+            heading_matches[index + 1].start()
+            if index + 1 < len(heading_matches)
+            else len(text)
+        )
+        block = text[match.end():block_end]
+        for field_name in REQUIRED_TECHNIQUE_FIELDS:
+            marker = f"- **{field_name}:**"
+            if marker not in block:
+                errors.append(f"{relative_name}: {technique_id} missing field {field_name!r}")
+        coverage_match = re.search(
+            r"^- \*\*Current RenGuard Coverage Status:\*\* (\S+)\s*$",
+            block,
+            re.MULTILINE,
+        )
+        if coverage_match and coverage_match.group(1) not in {"CORE", "PARTIAL", "PLANNED"}:
+            errors.append(
+                f"{relative_name}: {technique_id} has invalid coverage status "
+                f"{coverage_match.group(1)!r}"
+            )
+
+    return technique_ids
+
+
+def _validate_taxonomy(root: Path, errors: list[str]) -> int:
+    texts: dict[str, str] = {}
+    for relative_name in TAXONOMY_FILES:
+        text = _read_text(root, relative_name, errors)
+        if text is not None:
+            texts[relative_name] = text
+
+    llm_text = texts.get("references/owasp-llm-2026.md")
+    if llm_text is not None:
+        _validate_framework_entries(
+            llm_text,
+            "references/owasp-llm-2026.md",
+            re.compile(r"^## (LLM(?:0[1-9]|10):2026) — (.+)$", re.MULTILINE),
+            OWASP_LLM_2026,
+            errors,
+        )
+
+    agentic_text = texts.get("references/owasp-agentic-2026.md")
+    if agentic_text is not None:
+        _validate_framework_entries(
+            agentic_text,
+            "references/owasp-agentic-2026.md",
+            re.compile(r"^## (ASI(?:0[1-9]|10)) — (.+)$", re.MULTILINE),
+            OWASP_AGENTIC_2026,
+            errors,
+        )
+
+    technique_ids: set[str] = set()
+    technique_text = texts.get("references/renguard-techniques.md")
+    if technique_text is not None:
+        technique_ids = _validate_technique_catalog(technique_text, errors)
+
+    for relative_name in CURRENT_TAXONOMY_CONSUMERS:
+        text = texts.get(relative_name)
+        if text is None:
+            text = _read_text(root, relative_name, errors)
+        if text is None:
+            continue
+        for technique_id in set(re.findall(r"\bRG-[A-Z]{2}-[0-9]{3}\b", text)):
+            if technique_id not in technique_ids:
+                errors.append(f"{relative_name}: unknown RenGuard technique reference {technique_id}")
+        for llm_id in set(re.findall(r"\bLLM[0-9]{2}:2026\b", text)):
+            if llm_id not in OWASP_LLM_2026:
+                errors.append(f"{relative_name}: unknown OWASP LLM 2026 mapping {llm_id}")
+        for agentic_id in set(re.findall(r"\bASI[0-9]{2}\b", text)):
+            if agentic_id not in OWASP_AGENTIC_2026:
+                errors.append(f"{relative_name}: unknown OWASP Agentic 2026 mapping {agentic_id}")
+        obsolete_ids = sorted(set(re.findall(r"\bLLM[0-9]{2}:2025\b", text)))
+        for obsolete_id in obsolete_ids:
+            errors.append(
+                f"{relative_name}: obsolete {obsolete_id} is presented in current taxonomy content"
+            )
+
+    skill_text = _read_text(root, "SKILL.md", errors)
+    if skill_text is not None:
+        for relative_name in TAXONOMY_FILES[:4]:
+            if f"({relative_name})" not in skill_text:
+                errors.append(f"SKILL.md: missing taxonomy reference link {relative_name!r}")
+
+    readme_text = _read_text(root, "README.md", errors)
+    if readme_text is not None:
+        for phrase in (
+            "100% OWASP coverage",
+            "full OWASP coverage",
+            "complete OWASP compliance",
+        ):
+            if phrase.lower() in readme_text.lower():
+                errors.append(f"README.md: unsupported empirical coverage claim {phrase!r}")
+        if "Framework mapping support and empirical detection coverage are separate" not in readme_text:
+            errors.append(
+                "README.md: must distinguish framework mapping support from empirical coverage"
+            )
+
+    return len(technique_ids)
+
+
 def validate_repository(root: Path) -> ValidationResult:
     root = root.resolve()
     validation = ValidationResult()
@@ -459,7 +698,8 @@ def validate_repository(root: Path) -> ValidationResult:
         validation.metrics = metrics
 
     _validate_readme_numbers(root, validation.errors)
-    for relative_name in ("README.md", "SKILL.md"):
+    validation.technique_count = _validate_taxonomy(root, validation.errors)
+    for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES):
         _validate_markdown_links(root, relative_name, validation.errors)
     return validation
 
@@ -488,6 +728,7 @@ def main(argv: list[str] | None = None) -> int:
     print("Repository validation PASSED")
     print(f"- eval definitions: {result.eval_count}")
     print(f"- benchmark runs: {result.run_count}")
+    print(f"- RenGuard techniques: {result.technique_count}")
     for configuration in CONFIGURATIONS:
         metrics = result.metrics[configuration]
         assertions = metrics["assertions"]

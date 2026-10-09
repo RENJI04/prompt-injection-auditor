@@ -7,14 +7,15 @@ description: >
   AI application instructions, multi-turn conversation logs, and agent specifications
   for prompt injection vulnerabilities, jailbreak vectors, instruction hijacking,
   and data exfiltration risks. Produces a structured security report with calibrated
-  findings, exploit demonstrations, a hardened rewrite, and defense-in-depth advice.
+  findings, stable RenGuard technique IDs, applicable OWASP LLM and Agentic 2026
+  mappings, exploit demonstrations, a hardened rewrite, and defense-in-depth advice.
 
   TRIGGER THIS SKILL whenever the user:
   - Pastes a system prompt and asks if it is safe, secure, or robust
   - Says "audit", "review", "check", or "harden" in relation to a prompt or AI app
   - Mentions prompt injection, jailbreak, AI security, LLM security, or red-teaming
   - Shares an AI assistant configuration, agent spec, or chatbot instruction set
-  - Asks about OWASP LLM Top 10 vulnerabilities
+  - Asks about OWASP LLM or Agentic Top 10 vulnerabilities
   - Uses phrases like "can someone break my bot", "is this prompt safe",
     "what are the weaknesses", or "make this more secure"
 
@@ -41,9 +42,13 @@ tool, identity, authorization, isolation, monitoring, and output-handling contro
 
 ## Before Starting
 
-Read the [v1 vulnerability taxonomy](references/vulnerability-taxonomy.md) now to load
-the current classification system and detection signals you will use throughout the
-audit.
+Read the [taxonomy entry point](references/vulnerability-taxonomy.md) and the
+[RenGuard technique catalog](references/renguard-techniques.md) now. Use stable `RG-`
+technique IDs as the operational classification for findings.
+
+Read the [OWASP LLM 2026 reference](references/owasp-llm-2026.md) when mapping any
+finding. If the target is agentic, also read the
+[OWASP Agentic 2026 reference](references/owasp-agentic-2026.md).
 
 Read the [hardening patterns catalog](references/hardening-patterns.md) when writing
 fixes and the hardened rewrite.
@@ -52,26 +57,31 @@ fixes and the hardened rewrite.
 
 Work through these steps in order for every audit:
 
-**Step 1 -- Classify the input**
+**Step 1 -- Classify the target**
 Determine what you are auditing: system prompt / user-facing instructions /
 conversation log / multi-agent pipeline spec / full application config.
-Note the deployment context (customer-facing chatbot, internal tool, autonomous agent,
-RAG system), provider/model if known, privileges, data access, and trust boundaries --
-this calibrates severity ratings. Do not infer provider-specific behavior when it is
-not supplied.
+Do not infer provider-specific behavior when it is not supplied.
 
-**Step 2 -- Run the vulnerability scan**
-Check the input against all 8 vulnerability categories from the taxonomy:
-1. Direct Prompt Injection
-2. Indirect / Environmental Injection
-3. Role Confusion and Persona Hijacking
-4. Instruction Leakage
-5. Goal Hijacking
-6. Context Overflow and Memory Poisoning
-7. Delimiter and Format Escaping
-8. Multi-Agent and Tool-Call Injection
+**Step 2 -- Identify architecture and trust context**
+Record data sources, hidden context, identities, privileges, tools, outputs, memory,
+retrieval, external destinations, and trust boundaries. Determine whether the target is
+agentic: tools/actions, planning, persistent state, autonomous execution, delegation,
+sub-agents, inter-agent communication, or external side effects are agentic signals.
+A basic text-only chatbot is not automatically an agent.
 
-**Step 3 -- Rate every finding**
+**Step 3 -- Detect RenGuard techniques**
+Scan against the technique catalog and assign the most specific applicable `RG-` ID.
+Keep the attack/security-failure mechanism separate from the enabling weakness and the
+impact. Do not use a broad OWASP category in place of a RenGuard technique.
+
+**Step 4 -- Map applicable frameworks**
+Give each finding its primary OWASP LLM 2026 mapping. Add secondary LLM mappings only
+when the extra condition or consequence exists. Add OWASP Agentic 2026 mappings only
+for agentic targets. Report `Not applicable — target is non-agentic` for a non-agentic
+target, or `No direct mapping for this finding` when the target is agentic but no ASI
+category fits the finding.
+
+**Step 5 -- Rate every finding**
 For each finding assign:
 - Severity: CRITICAL / HIGH / MEDIUM / LOW / INFO
 - Exploitability: Trivial / Easy / Moderate / Hard
@@ -83,25 +93,23 @@ Calibration:
 - LOW = theoretical or requires significant attacker capability
 - INFO = best practice gap with no direct exploitation path
 
-**Step 4 -- Write Exploit PoCs**
+**Step 6 -- Write Exploit PoCs**
 Every CRITICAL and HIGH finding must include a concrete adversarial input -- the
 actual string or sequence an attacker would send. Write the real attack.
 
-**Step 5 -- Compute overall risk**
+**Step 7 -- Compute overall risk**
 CRITICAL if any Critical finding exists.
 HIGH if highest finding is High.
 MEDIUM if highest finding is Medium.
 LOW if all findings are Low or Info only.
 CLEAN if zero findings.
 
-**Step 6 -- Produce the full report** (use the exact format below)
+**Step 8 -- Produce the full report and hardened rewrite**
+Use the exact format below. Rewrite the full prompt with all findings addressed using
+patterns from `references/hardening-patterns.md`. It must be substantively different
+from the original. Present it as a prompt-layer control, not a security guarantee.
 
-**Step 7 -- Write the hardened rewrite**
-Rewrite the full prompt with all findings addressed using patterns from
-`references/hardening-patterns.md`. It must be substantively different from the
-original. Present it as a prompt-layer control, not a security guarantee.
-
-**Step 8 -- Defensive recommendations**
+**Step 9 -- Defensive recommendations**
 Add systemic recommendations beyond prompt-level fixes.
 
 ## Output Format
@@ -123,15 +131,19 @@ Use this exact template every time:
 ---
 
 ### Vulnerability Table
-| # | Type | Severity | Location | Exploitability |
-|---|------|----------|----------|----------------|
+| # | RenGuard Technique | Severity | Exploitability | OWASP LLM 2026 | OWASP Agentic 2026 | Location |
+|---|--------------------|----------|----------------|----------------|---------------------|----------|
 
 ---
 
 ### Detailed Findings
 
 #### Finding #N -- [Vulnerability Name] [SEVERITY]
+**RenGuard Technique:** [RG-XX-NNN — Technique Name]
+**OWASP LLM 2026:** [primary mapping; secondary mapping if applicable]
+**OWASP Agentic 2026:** [mapping, or Not applicable — target is non-agentic]
 **Description:** ...
+**Security Weakness:** [missing or ineffective control]
 **Location:** [Quote the exact vulnerable text]
 **Exploit PoC:**
 > [The real adversarial input]

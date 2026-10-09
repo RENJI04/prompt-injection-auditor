@@ -32,6 +32,15 @@ class RepositoryValidationTests(unittest.TestCase):
             json.dump(data, handle, indent=2)
             handle.write("\n")
 
+    def _errors_after_text_replacement(
+        self, relative_name: str, old: str, new: str
+    ) -> list[str]:
+        path = self.root / relative_name
+        text = path.read_text(encoding="utf-8")
+        self.assertIn(old, text)
+        path.write_text(text.replace(old, new, 1), encoding="utf-8", newline="\n")
+        return validate_repository(self.root).errors
+
     def _errors_after_benchmark_change(self, change) -> list[str]:
         relative_name = "benchmarks/benchmark.json"
         data = self._read_json(relative_name)
@@ -78,6 +87,54 @@ class RepositoryValidationTests(unittest.TestCase):
             lambda data: data["metadata"].pop("benchmark_corpus")
         )
         self.assertTrue(any("missing benchmark_corpus provenance" in error for error in errors))
+
+    def test_rejects_duplicate_renguard_technique_id(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "## RG-PI-002 — Indirect Content Injection",
+            "## RG-PI-001 — Indirect Content Injection",
+        )
+        self.assertTrue(any("duplicate RenGuard technique ID" in error for error in errors))
+
+    def test_rejects_malformed_renguard_technique_id(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "## RG-PI-001 — Direct Instruction Override",
+            "## RG-PI-01 — Direct Instruction Override",
+        )
+        self.assertTrue(any("malformed RenGuard technique ID" in error for error in errors))
+
+    def test_rejects_unknown_owasp_llm_mapping(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "**Primary OWASP LLM 2026:** `LLM01:2026`",
+            "**Primary OWASP LLM 2026:** `LLM99:2026`",
+        )
+        self.assertTrue(any("unknown OWASP LLM 2026 mapping" in error for error in errors))
+
+    def test_rejects_wrong_owasp_2026_name(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/owasp-llm-2026.md",
+            "## LLM08:2026 — Hidden Context Exposure",
+            "## LLM08:2026 — System Prompt Leakage",
+        )
+        self.assertTrue(any("LLM08:2026 name" in error for error in errors))
+
+    def test_rejects_unknown_agentic_mapping(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "**OWASP Agentic 2026:** `ASI01`",
+            "**OWASP Agentic 2026:** `ASI99`",
+        )
+        self.assertTrue(any("unknown OWASP Agentic 2026 mapping" in error for error in errors))
+
+    def test_rejects_missing_mandatory_framework_entry(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/owasp-agentic-2026.md",
+            "## ASI10 — Rogue Agents\n",
+            "",
+        )
+        self.assertTrue(any("missing mandatory framework entry ASI10" in error for error in errors))
 
 
 if __name__ == "__main__":

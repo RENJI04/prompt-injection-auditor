@@ -1,7 +1,17 @@
 # Hardening Patterns Catalog
 
 Reference for the RenGuard skill. Load when writing fixes and hardened rewrites.
-Contains 20+ defensive prompt patterns in 5 sections.
+Contains 20+ defensive prompt patterns in 5 sections. Technique definitions live in
+[renguard-techniques.md](renguard-techniques.md); this catalog supplies prompt-layer
+mitigations and does not replace the application/runtime controls documented there.
+
+| Pattern section | Principal RenGuard technique families |
+|---|---|
+| Role Anchoring | `RG-PI-008`, `RG-PI-009`, `RG-PR-001` |
+| Input Sanitization Instructions | `RG-PI-001` through `RG-PI-007` |
+| Scope Limiting | `RG-PR-002`, `RG-PR-003`, `RG-TL-001`, `RG-TL-005` |
+| Output Constraints | `RG-HC-003`, `RG-HC-004`, `RG-OU-001` |
+| Indirect Injection Defense | `RG-PI-002` through `RG-PI-004`, `RG-TL-002`, `RG-TL-003`, `RG-AG-001`, `RG-AG-002`, `RG-ME-001` |
 
 ---
 

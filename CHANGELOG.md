@@ -5,6 +5,20 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 2 taxonomy modernization
+
+- Added a stable 38-technique RenGuard taxonomy across 13 provider-neutral families.
+- Migrated current framework mappings to OWASP Top 10 for LLM Applications 2026.
+- Added conditional mappings for OWASP Top 10 for Agentic Applications 2026.
+- Added an explicit v1→v2 crosswalk separating attack mechanism, enabling weakness,
+  and impact while preserving the value of the original eight broad categories.
+- Updated the core skill report format and worked examples with RenGuard technique IDs
+  and applicable 2026 framework mappings.
+- Extended offline validation and standard-library tests for framework names, unique
+  technique IDs, cross-references, required files, and unsupported coverage claims.
+- Left the current eval scenarios unchanged and preserved the historical v1 benchmark
+  source commit and methodology.
+
 ### Phase 1 foundation
 
 - Began the internal rebrand from Prompt Injection Auditor to RenGuard.
