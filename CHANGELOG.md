@@ -1,0 +1,31 @@
+# Changelog
+
+All notable project changes are documented here. RenGuard v2 remains in development;
+no final v2.0.0 release is declared by this file.
+
+## Unreleased — RenGuard 2.0.0-alpha.1
+
+### Phase 1 foundation
+
+- Began the internal rebrand from Prompt Injection Auditor to RenGuard.
+- Kept `SKILL.md` as the core product and clarified the boundary between the
+  provider-neutral audit methodology and host-specific skill compatibility.
+- Replaced Claude-exclusive positioning while retaining truthful Claude model metadata
+  in the historical benchmark artifact.
+- Corrected the historical benchmark summary and notes, explicitly separating the
+  40/41 (97.56%) assertion-weighted result from the 97.92% mean eval result.
+- Bound the historical benchmark corpus to source commit
+  `c2e8de497b7550ca3ca4df081efae27ddd28d582` and explicitly distinguished it from
+  the current RenGuard v2-alpha eval corpus. Eval prompts and assertions were unchanged;
+  defensive fixture wording changed for evals 3 and 8.
+- Added dependency-free repository validation and standard-library regression tests.
+- Replaced overly broad “all user input is data” guidance with authority-aware handling
+  of legitimate requests and untrusted embedded instructions.
+- Clarified that the original v1 OWASP mappings are approximate cross-references and
+  that prompt hardening is one part of a defense-in-depth program.
+
+## 1.0.0 — Prompt Injection Auditor
+
+- Established the original skill-first prompt injection audit workflow.
+- Added the eight-category v1 taxonomy, hardening patterns, worked examples, eight
+  declarative eval scenarios, and the historical with-skill/without-skill benchmark.
