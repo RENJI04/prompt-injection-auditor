@@ -5,6 +5,29 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 3 audit engine and risk scoring
+
+- Added the project-specific, non-CVSS RenGuard Risk Score with 12 explicit 0–4
+  dimensions, documented weights, one-decimal scoring, and fixed severity bands.
+- Distinguished known-zero and not-applicable values from unknown evidence, made the
+  40% Exploitability / Exposure and 60% Impact / Consequence groups explicit, and added
+  sensitivity notes for material runtime gaps without speculative score inflation.
+- Separated numeric risk from HIGH / MEDIUM / LOW confidence and formalized TRIVIAL,
+  EASY, MODERATE, HARD, and CONDITIONAL exploitability labels.
+- Added per-report `RG-F-` finding IDs, architecture-aware blast radius, persistence,
+  reversibility, external reach, attack-chain, cascading-risk, and overall-risk rules.
+- Added conservative projected residual-risk and before/after remediation comparisons
+  using the same deterministic formula.
+- Classified recommendations across prompt, application, authorization, tool, runtime,
+  network, human-approval, and monitoring controls; clarified that chat confirmation is
+  not robust authorization.
+- Extended the core skill and three worked examples with score vectors, confidence,
+  attack/weakness/impact separation, control tags, and verification guidance.
+- Extended offline validation and unit tests for the risk specification, severity
+  consistency, finding IDs, formula fixtures, labels, and example secret handling.
+- Left current eval scenarios and the historical v1 benchmark artifact unchanged;
+  Phase 3 has not been measured by a new live model benchmark.
+
 ### Phase 2 taxonomy modernization
 
 - Added a stable 38-technique RenGuard taxonomy across 13 provider-neutral families.

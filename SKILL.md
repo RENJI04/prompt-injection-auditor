@@ -8,7 +8,8 @@ description: >
   for prompt injection vulnerabilities, jailbreak vectors, instruction hijacking,
   and data exfiltration risks. Produces a structured security report with calibrated
   findings, stable RenGuard technique IDs, applicable OWASP LLM and Agentic 2026
-  mappings, exploit demonstrations, a hardened rewrite, and defense-in-depth advice.
+  mappings, deterministic RenGuard Risk Scores, confidence assessments, attack-chain
+  analysis, exploit demonstrations, a hardened rewrite, and defense-in-depth advice.
 
   TRIGGER THIS SKILL whenever the user:
   - Pastes a system prompt and asks if it is safe, secure, or robust
@@ -50,6 +51,10 @@ Read the [OWASP LLM 2026 reference](references/owasp-llm-2026.md) when mapping a
 finding. If the target is agentic, also read the
 [OWASP Agentic 2026 reference](references/owasp-agentic-2026.md).
 
+Read the canonical [RenGuard Risk Scoring](references/risk-scoring.md) specification
+before assigning any numeric score, severity, confidence, exploitability, chain risk,
+or residual risk. Use its rubric and formula; do not invent risk values.
+
 Read the [hardening patterns catalog](references/hardening-patterns.md) when writing
 fixes and the hardened rewrite.
 
@@ -71,46 +76,67 @@ A basic text-only chatbot is not automatically an agent.
 
 **Step 3 -- Detect RenGuard techniques**
 Scan against the technique catalog and assign the most specific applicable `RG-` ID.
-Keep the attack/security-failure mechanism separate from the enabling weakness and the
-impact. Do not use a broad OWASP category in place of a RenGuard technique.
+Assign a per-report finding ID (`RG-F-001`, `RG-F-002`, ...). Keep it distinct from the
+stable technique ID. For each significant finding, separately record the attack
+technique, enabling security weakness, supported preconditions, affected assets, and
+material impact. Do not use a broad OWASP category in place of a RenGuard technique.
 
-**Step 4 -- Map applicable frameworks**
+**Step 4 -- Assess scoring dimensions**
+Use all 12 dimensions from `references/risk-scoring.md`: exploitability, preconditions,
+human dependency, privilege, tool power, sensitive-data exposure, autonomy,
+persistence, blast radius, reversibility, detection difficulty, and external reach.
+Assign each supported value from 0–4 and retain the vector in the report. A technique
+name alone never determines severity. Classify each dimension as KNOWN ZERO, NOT
+APPLICABLE, or UNKNOWN / INSUFFICIENT EVIDENCE before assigning its value. Known zero
+and not applicable legitimately score 0. Unknown never automatically scores 0: use the
+lowest value positively supported by evidence, state the gap, lower Confidence when the
+gap is material, and add a sensitivity note if the unknown could change severity. Do
+not invent missing runtime facts or inflate a value because missing facts might be risky.
+
+**Step 5 -- Calculate risk, severity, confidence, and exploitability**
+Calculate the 0.0–10.0 RenGuard Risk Score with the documented weights and formula,
+round once to one decimal, and derive severity from the fixed bands. Manual severity
+overrides are not permitted. Assign confidence separately as HIGH / MEDIUM / LOW based
+on evidence quality; low confidence does not reduce the score. Use TRIVIAL / EASY /
+MODERATE / HARD for `E = 4 / 3 / 2 / 1`, or CONDITIONAL with an explicit
+evidence-supported `E` value, documented assumptions, and normally LOW confidence when
+runtime facts are missing.
+
+**Step 6 -- Map applicable frameworks**
 Give each finding its primary OWASP LLM 2026 mapping. Add secondary LLM mappings only
 when the extra condition or consequence exists. Add OWASP Agentic 2026 mappings only
 for agentic targets. Report `Not applicable — target is non-agentic` for a non-agentic
 target, or `No direct mapping for this finding` when the target is agentic but no ASI
 category fits the finding.
 
-**Step 5 -- Rate every finding**
-For each finding assign:
-- Severity: CRITICAL / HIGH / MEDIUM / LOW / INFO
-- Exploitability: Trivial / Easy / Moderate / Hard
+**Step 7 -- Write defensive exploit demonstrations**
+For CRITICAL and HIGH findings, include the minimum concrete input or sequence needed
+to verify the weakness. Avoid unnecessary destructive payloads, redact every secret,
+and never copy a secret into the hardened rewrite.
 
-Calibration:
-- CRITICAL = exploitable with a one-line user message, immediate meaningful impact
-- HIGH = exploitable with short adversarial sequence, significant impact
-- MEDIUM = requires creativity/persistence, moderate impact
-- LOW = theoretical or requires significant attacker capability
-- INFO = best practice gap with no direct exploitation path
+**Step 8 -- Identify attack chains and overall risk**
+Link related finding IDs only when exploitation has a supported order. Record the entry
+point, final consequence, trust boundaries crossed, affected components, and cascade.
+Score a chain once with the same rubric; never sum member scores. Overall numeric risk
+is the maximum supported finding or chain score, never an average. `CLEAN` means zero
+findings, not a score override.
 
-**Step 6 -- Write Exploit PoCs**
-Every CRITICAL and HIGH finding must include a concrete adversarial input -- the
-actual string or sequence an attacker would send. Write the real attack.
+**Step 9 -- Propose layered controls and residual risk**
+Tag recommendations with `[PROMPT]`, `[APPLICATION]`, `[AUTHORIZATION]`, `[TOOL]`,
+`[RUNTIME]`, `[NETWORK]`, `[HUMAN APPROVAL]`, or `[MONITORING]`. A chat string such as
+“type CONFIRM” is not strong authorization. For consequential actions recommend an
+authenticated platform, scoped/signed, out-of-band, or two-person approval as justified.
+Re-score explicit post-control scenarios with the same dimensions. Unless controls are
+verified, label the result `Projected residual risk if controls are implemented`.
 
-**Step 7 -- Compute overall risk**
-CRITICAL if any Critical finding exists.
-HIGH if highest finding is High.
-MEDIUM if highest finding is Medium.
-LOW if all findings are Low or Info only.
-CLEAN if zero findings.
-
-**Step 8 -- Produce the full report and hardened rewrite**
+**Step 10 -- Produce the full report and hardened rewrite**
 Use the exact format below. Rewrite the full prompt with all findings addressed using
 patterns from `references/hardening-patterns.md`. It must be substantively different
 from the original. Present it as a prompt-layer control, not a security guarantee.
 
-**Step 9 -- Defensive recommendations**
-Add systemic recommendations beyond prompt-level fixes.
+**Step 11 -- Verification guidance**
+State how each proposed control should be tested and which assumptions still require
+runtime or architectural verification.
 
 ## Output Format
 
@@ -120,8 +146,9 @@ Use this exact template every time:
 ## RenGuard Security Audit Report
 
 **Target:** [name/description of what was audited]
-**Overall Risk:** CRITICAL / HIGH / MEDIUM / LOW / CLEAN
-**Findings:** N vulnerabilities (X Critical, Y High, Z Medium, W Low, V Info)
+**Overall Risk:** [score] CRITICAL / HIGH / MEDIUM / LOW / INFORMATIONAL / CLEAN
+**Overall Confidence:** HIGH / MEDIUM / LOW
+**Findings:** N findings (X Critical, Y High, Z Medium, W Low, V Informational)
 
 ---
 
@@ -131,24 +158,43 @@ Use this exact template every time:
 ---
 
 ### Vulnerability Table
-| # | RenGuard Technique | Severity | Exploitability | OWASP LLM 2026 | OWASP Agentic 2026 | Location |
-|---|--------------------|----------|----------------|----------------|---------------------|----------|
+| Finding ID | RenGuard Technique | Risk Score | Severity | Confidence | Exploitability | Location |
+|------------|--------------------|-----------:|----------|------------|----------------|----------|
 
 ---
 
 ### Detailed Findings
 
-#### Finding #N -- [Vulnerability Name] [SEVERITY]
+#### RG-F-NNN — [Vulnerability Name] [SEVERITY]
 **RenGuard Technique:** [RG-XX-NNN — Technique Name]
 **OWASP LLM 2026:** [primary mapping; secondary mapping if applicable]
 **OWASP Agentic 2026:** [mapping, or Not applicable — target is non-agentic]
+**RenGuard Risk Score:** [0.0–10.0] [severity]
+**Confidence:** HIGH / MEDIUM / LOW — [evidence basis and assumptions]
+**Exploitability:** TRIVIAL / EASY / MODERATE / HARD / CONDITIONAL
+**Scoring Dimensions (0–4):** E=?, P=?, H=?, V=?, T=?, D=?, A=?, S=?, B=?, R=?, X=?, G=?
+**Evidence State / Sensitivity:** [known-zero, not-applicable, and unknown dimensions;
+state material evidence gaps and how actual risk could differ]
 **Description:** ...
+**Attack Technique:** [what the attacker does]
 **Security Weakness:** [missing or ineffective control]
-**Location:** [Quote the exact vulnerable text]
-**Exploit PoC:**
-> [The real adversarial input]
+**Preconditions:** [supported attacker access/conditions; do not fabricate]
+**Evidence / Location:** [quote vulnerable text or describe supplied architecture]
+**Affected Assets:** ...
+**Privileges / Capabilities:** ...
+**Blast Radius:** [level and evidence]
+**Persistence:** [level and evidence]
+**Reversibility:** [level and evidence]
+**Detection Difficulty:** [level and evidence]
+**External Reach:** [level and evidence]
+**Defensive Exploit Demonstration:**
+> [minimum non-destructive adversarial input or sequence, with secrets redacted]
 **Impact:** ...
-**Fix:** [Hardened replacement for this fragment]
+**Prompt-Level Fix:** [PROMPT] ...
+**Runtime / Architectural Fix:** [one or more control tags] ...
+**Residual Risk:** [projected score, severity, changed dimensions, and assumptions]
+**Related Findings / Attack Chain:** [ordered finding IDs, or None]
+**Verification Guidance:** ...
 
 ---
 
@@ -158,8 +204,21 @@ Use this exact template every time:
 ---
 
 ### Defensive Recommendations
-[Systemic improvements]
+[Layered, control-tagged systemic improvements]
+
+---
+
+### Remediation Comparison
+| State | Score | Severity | Status |
+|---|---:|---|---|
+| Before remediation | ... | ... | Observed |
+| After prompt-only hardening | ... | ... | Projected if controls are implemented |
+| After runtime enforcement | ... | ... | Projected if controls are implemented and verified |
 ```
+
+Use proportional reporting: LOW and INFORMATIONAL findings may omit irrelevant detail,
+but every score must retain enough dimension evidence to be reproduced. HIGH and
+CRITICAL findings must explicitly address blast radius and material consequence.
 
 ## Calibration Notes
 
@@ -169,7 +228,15 @@ automatically vulnerable. The question is: can an adversary exploit this?
 **False positive cost is high.** Reserve CRITICAL and HIGH for things that are
 actually dangerous.
 
-**PoC quality is everything.** Write real attacks, not descriptions.
+**PoC quality matters.** Use a concrete defensive demonstration, but do not add
+destructive payloads beyond what is necessary to verify the weakness.
+
+**Risk is not confidence.** Report both independently. Missing runtime facts lower
+confidence and require stated assumptions; they do not silently become zeros, lower
+consequence, or justify speculative inflation. The score reflects supported context.
+
+**Projected protection is not implemented protection.** Prompt hardening remains
+probabilistic. Label hypothetical residual risk and require runtime verification.
 
 **Clean prompts deserve clean reports.** If a prompt has genuine hardening and no
 meaningful attack surface, say so clearly.

@@ -6,7 +6,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.validate_repo import validate_repository
+from scripts.validate_repo import (
+    EXPOSURE_SYMBOLS,
+    IMPACT_SYMBOLS,
+    RISK_DIMENSIONS,
+    calculate_risk_score,
+    severity_for_score,
+    validate_repository,
+)
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
@@ -135,6 +142,124 @@ class RepositoryValidationTests(unittest.TestCase):
             "",
         )
         self.assertTrue(any("missing mandatory framework entry ASI10" in error for error in errors))
+
+    def test_rejects_out_of_range_risk_score(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure | 7.5 | HIGH |",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure | 10.1 | HIGH |",
+        )
+        self.assertTrue(any("out of range 0.0–10.0" in error for error in errors))
+
+    def test_rejects_risk_score_severity_mismatch(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure | 7.5 | HIGH |",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure | 7.5 | CRITICAL |",
+        )
+        self.assertTrue(any("risk score / severity mismatch" in error for error in errors))
+
+    def test_rejects_overlapping_severity_bands(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/risk-scoring.md",
+            "| MEDIUM | 4.0 | 6.9 |",
+            "| MEDIUM | 3.9 | 6.9 |",
+        )
+        self.assertTrue(any("severity bands overlap" in error for error in errors))
+
+    def test_rejects_missing_scoring_dimension(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/risk-scoring.md",
+            "### B — Blast Radius (weight 8%)",
+            "### Blast Radius criteria removed",
+        )
+        self.assertTrue(any("missing scoring dimension 'Blast Radius'" in error for error in errors))
+
+    def test_rejects_unknown_dimension_equated_with_zero(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/risk-scoring.md",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — no automatic numeric value",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — numeric value 0",
+        )
+        self.assertTrue(
+            any("UNKNOWN must not be documented as equivalent to zero" in error for error in errors)
+        )
+
+    def test_known_zero_and_not_applicable_legitimately_score_zero(self) -> None:
+        text = (self.root / "references/risk-scoring.md").read_text(encoding="utf-8")
+        self.assertIn("KNOWN ZERO — numeric value 0", text)
+        self.assertIn("NOT APPLICABLE — numeric value 0", text)
+        self.assertEqual(0.0, calculate_risk_score((0,) * 12))
+
+    def test_rejects_numbered_exploitability_alias(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "SKILL.md",
+            "for `E = 4 / 3 / 2 / 1`",
+            "for `D" + "1 = 4 / 3 / 2 / 1`",
+        )
+        self.assertTrue(any("stale numbered risk-dimension alias" in error for error in errors))
+
+    def test_risk_component_weight_totals(self) -> None:
+        exposure_total = sum(RISK_DIMENSIONS[symbol][2] for symbol in EXPOSURE_SYMBOLS)
+        impact_total = sum(RISK_DIMENSIONS[symbol][2] for symbol in IMPACT_SYMBOLS)
+        self.assertEqual(40, exposure_total)
+        self.assertEqual(60, impact_total)
+        self.assertEqual(100, exposure_total + impact_total)
+        maximum_weighted_total = sum(
+            RISK_DIMENSIONS[symbol][2] * 4 for symbol in RISK_DIMENSIONS
+        )
+        self.assertEqual(400, maximum_weighted_total)
+        self.assertEqual(10.0, calculate_risk_score((4,) * 12))
+
+    def test_rejects_invalid_confidence_value(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| 7.5 | HIGH | MEDIUM | TRIVIAL | Synthetic support token |",
+            "| 7.5 | HIGH | CERTAIN | TRIVIAL | Synthetic support token |",
+        )
+        self.assertTrue(any("invalid confidence value" in error for error in errors))
+
+    def test_rejects_invalid_exploitability_label(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| 7.5 | HIGH | MEDIUM | TRIVIAL | Synthetic support token |",
+            "| 7.5 | HIGH | MEDIUM | INSTANT | Synthetic support token |",
+        )
+        self.assertTrue(any("invalid exploitability label" in error for error in errors))
+
+    def test_rejects_malformed_finding_id(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure |",
+            "| `RG-F-01` | `RG-HC-003` Credential or Secret Exposure |",
+        )
+        self.assertTrue(any("malformed finding ID 'RG-F-01'" in error for error in errors))
+
+    def test_rejects_technique_id_where_finding_id_expected(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "examples/01-chatbot-prompt.md",
+            "| `RG-F-001` | `RG-HC-003` Credential or Secret Exposure |",
+            "| `RG-HC-003` | `RG-HC-003` Credential or Secret Exposure |",
+        )
+        self.assertTrue(any("malformed finding ID 'RG-HC-003'" in error for error in errors))
+
+    def test_deterministic_risk_formula_cases(self) -> None:
+        cases = (
+            ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 0.0, "INFORMATIONAL"),
+            ((4, 4, 4, 0, 0, 0, 0, 0, 1, 1, 0, 0), 3.6, "LOW"),
+            ((3, 3, 4, 1, 2, 3, 1, 1, 2, 4, 2, 2), 6.0, "MEDIUM"),
+            ((3, 3, 4, 3, 3, 3, 3, 2, 3, 4, 3, 4), 7.9, "HIGH"),
+            ((4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 3, 4), 9.6, "CRITICAL"),
+        )
+        scores = []
+        for vector, expected_score, expected_severity in cases:
+            with self.subTest(expected_score=expected_score):
+                score = calculate_risk_score(vector)
+                scores.append(score)
+                self.assertEqual(expected_score, score)
+                self.assertEqual(expected_severity, severity_for_score(score))
+        self.assertEqual(scores, sorted(scores))
+        self.assertEqual(len(scores), len(set(scores)))
 
 
 if __name__ == "__main__":

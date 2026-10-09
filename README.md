@@ -21,7 +21,30 @@ turn this repository into a web application, backend service, or standalone SaaS
 RenGuard currently audits system prompts, AI application instructions, conversation
 logs, and agent specifications using 38 stable, provider-neutral RenGuard technique
 IDs. It produces a structured report with calibrated findings, OWASP mappings, concrete
-exploit demonstrations, a hardened rewrite, and defense-in-depth recommendations.
+defensive exploit demonstrations, a hardened rewrite, defense-in-depth recommendations,
+and a deterministic **RenGuard Risk Score** from 0.0–10.0.
+
+Phase 3 findings explicitly separate five concepts:
+
+- **Technique** — what the attacker does or how the security failure occurs.
+- **Weakness** — the missing or ineffective control that enables it.
+- **Impact** — the consequence in the supplied deployment context.
+- **Risk** — the calculated likelihood/consequence score and severity band.
+- **Confidence** — evidence quality, reported independently from risk.
+
+RenGuard Risk Score is a project-specific AI security assessment model and is not CVSS.
+It uses 12 documented 0–4 dimensions, visible weights, and a reproducible formula. Risk
+does not equal confidence: incomplete runtime evidence lowers confidence but does not
+silently reduce a potentially severe consequence. See the canonical
+[risk-scoring specification](references/risk-scoring.md).
+
+Each dimension distinguishes **known zero**, **not applicable**, and **unknown /
+insufficient evidence**. The first two legitimately score zero; unknown does not
+automatically become zero or an invented high value. RenGuard uses the lowest value
+positively supported by evidence, records material gaps, lowers Confidence when
+appropriate, and adds a sensitivity note when the missing fact could change severity.
+The 40% Exploitability / Exposure component is ordinal, not an estimate of empirical
+exploit probability; Impact / Consequence contributes the remaining 60%.
 
 The audit methodology is designed to be model and provider neutral. It can be applied
 to GPT-, Claude-, Gemini-, Llama-, Mistral-, DeepSeek-, Qwen-, local/self-hosted,
@@ -35,6 +58,10 @@ agentic targets, the
 [OWASP Top 10 for Agentic Applications 2026](references/owasp-agentic-2026.md).
 Framework mapping support and empirical detection coverage are separate: the current
 eight-eval suite does not test every technique or every OWASP category.
+
+Projected residual risk is also distinct from implemented protection. A post-control
+score is labeled projected unless the named prompt, authorization, tool, runtime,
+network, human-approval, and monitoring controls are evidenced and verified.
 
 ## Taxonomy Architecture
 
@@ -90,13 +117,16 @@ From the NovaPay fintech chatbot audit in
 ## RenGuard Security Audit Report
 
 Target: Penny, NovaPay Customer Support
-Overall Risk: CRITICAL
-Findings: 5 vulnerabilities (3 Critical, 2 High, 0 Medium, 0 Low)
+Overall Risk: 7.5 HIGH
+Overall Confidence: MEDIUM
+Findings: 5 findings (0 Critical, 2 High, 3 Medium, 0 Low)
 
-Finding #1 -- Hardcoded Production API Token [CRITICAL]
+RG-F-001 — Hardcoded Production API Token [HIGH]
 RenGuard Technique: RG-HC-003 — Credential or Secret Exposure
 OWASP LLM 2026: LLM02:2026 Sensitive Information Disclosure
 OWASP Agentic 2026: ASI03 Identity & Privilege Abuse
+RenGuard Risk Score: 7.5 HIGH
+Confidence: MEDIUM
 Impact: An attacker may obtain a transactions API credential from the prompt.
 ```
 
@@ -116,6 +146,7 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   ├── renguard-techniques.md        # Canonical 38-technique catalog
 │   ├── owasp-llm-2026.md             # OWASP LLM 2026 reference
 │   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
+│   ├── risk-scoring.md                # Canonical RenGuard Risk Score specification
 │   └── hardening-patterns.md         # Defensive prompt patterns
 ├── examples/                         # Worked audit examples
 ├── evals/
@@ -179,7 +210,8 @@ The validator checks JSON parsing, unique IDs, fixture existence, benchmark/eval
 references, result arithmetic, pass rates, recomputed micro and macro summaries,
 historical source-commit provenance, known contradictory notes, documented headline
 values, important relative links, official framework IDs/names, unique RenGuard IDs,
-and valid cross-references.
+valid cross-references, the risk formula and bands, scoring dimensions, finding IDs,
+confidence/exploitability labels, and worked-example score consistency.
 
 These commands do **not** execute prompts against a live model and do not reproduce the
 historical benchmark. A live model evaluation and benchmark runner is deferred to a
@@ -187,9 +219,10 @@ later phase.
 
 ## What RenGuard Does Not Yet Do
 
-Phase 2 implements classification and mapping, not specialized detection engines.
+Phase 3 implements classification, formal audit reasoning, and deterministic risk
+assessment, not specialized detection engines.
 RenGuard does not yet implement dedicated MCP, RAG, memory, multimodal, output-security,
-or supply-chain scanners; provider/framework profiles; advanced numeric scoring; SARIF;
+or supply-chain scanners; provider/framework profiles; SARIF;
 large eval expansion; mutation testing; holdout suites; live multi-model execution; or
 statistical confidence intervals. Future work is described as planned work, not current
 functionality.
@@ -197,6 +230,7 @@ functionality.
 The current prompt-level skill also does not directly test application code, model
 weights, network controls, tool implementations, UI output encoding, or stochastic
 attack success rates. Those controls require system-level testing beyond prompt review.
+Phase 3 scoring and report behavior have not been measured by a new live model benchmark.
 
 ## Contributing
 

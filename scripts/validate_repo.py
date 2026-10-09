@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Validate RenGuard's taxonomy, evals, and historical benchmark artifact."""
+"""Validate RenGuard's taxonomy, risk scoring, evals, and historical benchmark."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
 import statistics
 import sys
 from dataclasses import dataclass, field
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
@@ -19,6 +21,7 @@ ROUNDING_TOLERANCE = 0.000051
 CONFIGURATIONS = ("with_skill", "without_skill")
 HISTORICAL_SOURCE_COMMIT = "c2e8de497b7550ca3ca4df081efae27ddd28d582"
 CURRENT_CORPUS_STATUS = "current_renguard_v2_alpha"
+HISTORICAL_METADATA_SHA256 = "6caa15e52fae155c3ca1fcb4efa4a3a47628891cb3660877637e160f9067316e"
 OWASP_LLM_2026 = {
     "LLM01:2026": "Prompt Injection",
     "LLM02:2026": "Sensitive Information Disclosure",
@@ -83,20 +86,56 @@ REQUIRED_TECHNIQUE_FIELDS = (
     "Application/runtime mitigations",
     "Current RenGuard Coverage Status",
 )
+RISK_DIMENSIONS = {
+    "E": (1, "Exploitability", 14),
+    "P": (2, "Preconditions / Required Access", 10),
+    "H": (3, "Human Interaction / Dependency", 8),
+    "V": (4, "Privilege / Authority", 9),
+    "T": (5, "Tool / Action Capability", 9),
+    "D": (6, "Sensitive Data Exposure", 9),
+    "A": (7, "Autonomy", 6),
+    "S": (8, "Persistence", 6),
+    "B": (9, "Blast Radius", 8),
+    "R": (10, "Reversibility", 6),
+    "X": (11, "Detection Difficulty", 8),
+    "G": (12, "External Reach", 7),
+}
+EXPOSURE_SYMBOLS = ("E", "P", "H", "X")
+IMPACT_SYMBOLS = ("V", "T", "D", "A", "S", "B", "R", "G")
+SEVERITY_BANDS = {
+    "INFORMATIONAL": (0.0, 0.0),
+    "LOW": (0.1, 3.9),
+    "MEDIUM": (4.0, 6.9),
+    "HIGH": (7.0, 8.9),
+    "CRITICAL": (9.0, 10.0),
+}
+CONFIDENCE_LEVELS = {"HIGH", "MEDIUM", "LOW"}
+EXPLOITABILITY_LABELS = {"TRIVIAL", "EASY", "MODERATE", "HARD", "CONDITIONAL"}
+RISK_CASES = {
+    "A": ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 0.0, "INFORMATIONAL"),
+    "B": ((4, 4, 4, 0, 0, 0, 0, 0, 1, 1, 0, 0), 3.6, "LOW"),
+    "C": ((3, 3, 4, 1, 2, 3, 1, 1, 2, 4, 2, 2), 6.0, "MEDIUM"),
+    "D": ((3, 3, 4, 3, 3, 3, 3, 2, 3, 4, 3, 4), 7.9, "HIGH"),
+    "E": ((4, 4, 4, 4, 4, 3, 4, 4, 4, 4, 3, 4), 9.6, "CRITICAL"),
+}
 TAXONOMY_FILES = (
     "references/vulnerability-taxonomy.md",
     "references/renguard-techniques.md",
     "references/owasp-llm-2026.md",
     "references/owasp-agentic-2026.md",
+    "references/risk-scoring.md",
     "references/hardening-patterns.md",
+)
+EXAMPLE_FILES = (
+    "examples/01-chatbot-prompt.md",
+    "examples/02-rag-agent-prompt.md",
+    "examples/03-tool-using-agent-prompt.md",
 )
 CURRENT_TAXONOMY_CONSUMERS = (
     "README.md",
     "SKILL.md",
     *TAXONOMY_FILES,
-    "examples/01-chatbot-prompt.md",
-    "examples/02-rag-agent-prompt.md",
-    "examples/03-tool-using-agent-prompt.md",
+    *EXAMPLE_FILES,
 )
 
 
@@ -122,6 +161,41 @@ def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
 
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def calculate_risk_score(values: dict[str, int] | tuple[int, ...]) -> float:
+    """Calculate a one-decimal RenGuard Risk Score from the canonical 12 dimensions."""
+    symbols = tuple(RISK_DIMENSIONS)
+    if isinstance(values, dict):
+        if set(values) != set(symbols):
+            raise ValueError(f"risk dimensions must be exactly {symbols!r}")
+        vector = tuple(values[symbol] for symbol in symbols)
+    else:
+        vector = tuple(values)
+        if len(vector) != len(symbols):
+            raise ValueError(f"risk vector must contain {len(symbols)} values")
+
+    if any(not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 4 for value in vector):
+        raise ValueError("risk dimension values must be integers from 0 through 4")
+
+    weighted_total = sum(
+        RISK_DIMENSIONS[symbol][2] * value
+        for symbol, value in zip(symbols, vector, strict=True)
+    )
+    score = (Decimal(weighted_total) / Decimal(40)).quantize(
+        Decimal("0.1"), rounding=ROUND_HALF_UP
+    )
+    return float(max(Decimal("0.0"), min(Decimal("10.0"), score)))
+
+
+def severity_for_score(score: float) -> str:
+    """Return the fixed RenGuard severity label for a valid one-decimal score."""
+    if not _is_number(score) or not 0.0 <= float(score) <= 10.0:
+        raise ValueError("risk score must be in the range 0.0 through 10.0")
+    for severity, (minimum, maximum) in SEVERITY_BANDS.items():
+        if minimum <= float(score) <= maximum:
+            return severity
+    raise ValueError(f"risk score {score!r} is not covered by the severity bands")
 
 
 def _check_close(
@@ -409,6 +483,13 @@ def _validate_benchmark(
     if not isinstance(metadata, dict):
         errors.append("benchmarks/benchmark.json: missing metadata object")
     else:
+        metadata_digest = hashlib.sha256(
+            json.dumps(metadata, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        if metadata_digest != HISTORICAL_METADATA_SHA256:
+            errors.append(
+                "benchmark metadata: historical metadata changed from the Phase 2 checkpoint"
+            )
         benchmark_corpus = metadata.get("benchmark_corpus")
         if not isinstance(benchmark_corpus, dict):
             errors.append("benchmark metadata: missing benchmark_corpus provenance object")
@@ -679,6 +760,386 @@ def _validate_taxonomy(root: Path, errors: list[str]) -> int:
     return len(technique_ids)
 
 
+def _validate_severity_pair(
+    relative_name: str,
+    score_text: str,
+    severity: str,
+    errors: list[str],
+) -> None:
+    try:
+        score = float(score_text)
+    except ValueError:
+        errors.append(f"{relative_name}: invalid RenGuard Risk Score {score_text!r}")
+        return
+    if not 0.0 <= score <= 10.0:
+        errors.append(f"{relative_name}: RenGuard Risk Score {score} is out of range 0.0–10.0")
+        return
+    try:
+        expected_severity = severity_for_score(score)
+    except ValueError as exc:
+        errors.append(f"{relative_name}: {exc}")
+        return
+    if severity != expected_severity:
+        errors.append(
+            f"{relative_name}: risk score / severity mismatch: "
+            f"{score:.1f} requires {expected_severity}, found {severity}"
+        )
+
+
+def _validate_risk_reference(root: Path, errors: list[str]) -> None:
+    relative_name = "references/risk-scoring.md"
+    text = _read_text(root, relative_name, errors)
+    if text is None:
+        return
+
+    if "from **0.0 to 10.0**" not in text:
+        errors.append(f"{relative_name}: score range 0.0–10.0 is not documented")
+    if "It is not CVSS" not in text:
+        errors.append(f"{relative_name}: non-CVSS disclaimer is missing")
+
+    heading_pattern = re.compile(
+        r"^### ([A-Z]) — (.+) \(weight ([0-9]+)%\)$",
+        re.MULTILINE,
+    )
+    headings = list(heading_pattern.finditer(text))
+    parsed_symbols: set[str] = set()
+    parsed_weights: list[int] = []
+    parsed_weight_by_symbol: dict[str, int] = {}
+    for index, match in enumerate(headings):
+        symbol = match.group(1)
+        name = match.group(2)
+        weight = int(match.group(3))
+        parsed_symbols.add(symbol)
+        parsed_weights.append(weight)
+        parsed_weight_by_symbol[symbol] = weight
+        expected = RISK_DIMENSIONS.get(symbol)
+        if expected is None:
+            errors.append(f"{relative_name}: unknown scoring dimension symbol {symbol!r}")
+        elif (name, weight) != expected[1:]:
+            errors.append(
+                f"{relative_name}: scoring dimension {symbol} must be "
+                f"{expected[1]} at weight {expected[2]}%"
+            )
+        block_end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+        block = text[match.end():block_end]
+        documented_values = {
+            int(value)
+            for value in re.findall(r"^\| ([0-4]) \|", block, re.MULTILINE)
+        }
+        if documented_values != {0, 1, 2, 3, 4}:
+            errors.append(
+                f"{relative_name}: scoring dimension {symbol} must define values 0 through 4"
+            )
+
+    for symbol, (_, name, _) in RISK_DIMENSIONS.items():
+        if symbol not in parsed_symbols:
+            errors.append(f"{relative_name}: missing scoring dimension {name!r} ({symbol})")
+    if len(parsed_symbols) != len(headings):
+        errors.append(f"{relative_name}: duplicate scoring dimension heading")
+    if sum(parsed_weights) != 100:
+        errors.append(
+            f"{relative_name}: scoring dimension weights must total 100, found {sum(parsed_weights)}"
+        )
+    exposure_total = sum(parsed_weight_by_symbol.get(symbol, 0) for symbol in EXPOSURE_SYMBOLS)
+    impact_total = sum(parsed_weight_by_symbol.get(symbol, 0) for symbol in IMPACT_SYMBOLS)
+    if exposure_total != 40:
+        errors.append(
+            f"{relative_name}: Exploitability / Exposure component weights must total 40, "
+            f"found {exposure_total}"
+        )
+    if impact_total != 60:
+        errors.append(
+            f"{relative_name}: Impact / Consequence component weights must total 60, "
+            f"found {impact_total}"
+        )
+
+    severity_rows = re.findall(
+        r"^\| (INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL) "
+        r"\| ([0-9]+\.[0-9]) \| ([0-9]+\.[0-9]) \|$",
+        text,
+        re.MULTILINE,
+    )
+    parsed_bands: dict[str, tuple[float, float]] = {}
+    for label, minimum_text, maximum_text in severity_rows:
+        if label in parsed_bands:
+            errors.append(f"{relative_name}: duplicate severity band {label}")
+        parsed_bands[label] = (float(minimum_text), float(maximum_text))
+    for label in SEVERITY_BANDS:
+        if label not in parsed_bands:
+            errors.append(f"{relative_name}: missing severity band {label}")
+
+    ordered_bands = sorted(parsed_bands.items(), key=lambda item: item[1][0])
+    if ordered_bands:
+        if ordered_bands[0][1][0] != 0.0 or ordered_bands[-1][1][1] != 10.0:
+            errors.append(f"{relative_name}: severity bands must cover 0.0 through 10.0")
+        for (_, (_, previous_max)), (label, (current_min, _)) in zip(
+            ordered_bands, ordered_bands[1:]
+        ):
+            if current_min <= previous_max:
+                errors.append(f"{relative_name}: severity bands overlap at {label}")
+            elif not math.isclose(current_min, previous_max + 0.1, abs_tol=1e-9):
+                errors.append(f"{relative_name}: severity bands leave a gap before {label}")
+    for label, expected_band in SEVERITY_BANDS.items():
+        if label in parsed_bands and parsed_bands[label] != expected_band:
+            errors.append(
+                f"{relative_name}: {label} severity band must be "
+                f"{expected_band[0]:.1f}–{expected_band[1]:.1f}"
+            )
+
+    confidence_headings = set(
+        re.findall(r"^### Confidence: (HIGH|MEDIUM|LOW)$", text, re.MULTILINE)
+    )
+    if confidence_headings != CONFIDENCE_LEVELS:
+        errors.append(
+            f"{relative_name}: confidence levels must be exactly HIGH, MEDIUM, and LOW"
+        )
+
+    exploitability_section = text.split("## Exploitability labels", 1)
+    parsed_exploitability: set[str] = set()
+    if len(exploitability_section) == 2:
+        section = exploitability_section[1].split("\n## ", 1)[0]
+        parsed_exploitability = set(
+            re.findall(
+                r"^\| (TRIVIAL|EASY|MODERATE|HARD|CONDITIONAL) \|",
+                section,
+                re.MULTILINE,
+            )
+        )
+    if parsed_exploitability != EXPLOITABILITY_LABELS:
+        errors.append(
+            f"{relative_name}: exploitability labels must define TRIVIAL, EASY, "
+            "MODERATE, HARD, and CONDITIONAL"
+        )
+
+    for fragment in (
+        "RenGuard Risk Score = round_half_up(weighted_total / 40, 1)",
+        "KNOWN ZERO — numeric value 0",
+        "NOT APPLICABLE — numeric value 0",
+        "UNKNOWN / INSUFFICIENT EVIDENCE — no automatic numeric value",
+        "UNKNOWN must never be silently",
+        "The current score reflects only verified",
+        "RenGuard does not estimate empirical exploit probability",
+        "Exploitability / Exposure Component (40%)",
+        "Impact / Consequence Component (60%)",
+        "| **Total** | **Exploitability / Exposure Component** | **40** |",
+        "| **Total** | **Impact / Consequence Component** | **60** |",
+        "does not mean that a hard-to-detect attack is more",
+        "Per-report finding IDs use `RG-F-001`",
+        "They are not taxonomy identifiers",
+        "Overall risk is not an average",
+        "Projected residual risk if",
+    ):
+        if fragment not in text:
+            errors.append(f"{relative_name}: missing scoring rule {fragment!r}")
+
+    for forbidden_phrase in (
+        "absent dimensions " "contribute zero",
+        "unknown " "= 0",
+        "missing " "= 0",
+    ):
+        if forbidden_phrase in text.lower():
+            errors.append(
+                f"{relative_name}: UNKNOWN must not be documented as equivalent to zero"
+            )
+    if re.search(r"UNKNOWN[^\n]{0,100}numeric value 0", text, re.IGNORECASE):
+        errors.append(f"{relative_name}: UNKNOWN must not be documented as equivalent to zero")
+
+    for consumer in ("SKILL.md", "README.md", relative_name, *EXAMPLE_FILES):
+        consumer_text = text if consumer == relative_name else _read_text(root, consumer, errors)
+        if consumer_text is not None and re.search(r"\bD[0-9]+\b", consumer_text):
+            errors.append(
+                f"{consumer}: stale numbered risk-dimension alias; use canonical symbols"
+            )
+
+    case_pattern = re.compile(
+        r"^\| ([A-E]) — [^|]+ \| `([0-4](?:,[0-4]){11})` "
+        r"\| ([0-9]+\.[0-9]) \| (INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL) \|$",
+        re.MULTILINE,
+    )
+    parsed_cases = {match.group(1): match.groups()[1:] for match in case_pattern.finditer(text)}
+    for case_id, (expected_vector, expected_score, expected_severity) in RISK_CASES.items():
+        parsed = parsed_cases.get(case_id)
+        if parsed is None:
+            errors.append(f"{relative_name}: missing deterministic scoring case {case_id}")
+            continue
+        vector = tuple(int(value) for value in parsed[0].split(","))
+        score = float(parsed[1])
+        severity = parsed[2]
+        if vector != expected_vector:
+            errors.append(f"{relative_name}: scoring case {case_id} vector changed")
+        calculated = calculate_risk_score(vector)
+        if score != calculated or score != expected_score:
+            errors.append(
+                f"{relative_name}: scoring case {case_id} expected score must be "
+                f"{calculated:.1f}"
+            )
+        if severity != expected_severity or severity != severity_for_score(score):
+            errors.append(f"{relative_name}: scoring case {case_id} severity mismatch")
+
+    skill_text = _read_text(root, "SKILL.md", errors)
+    if skill_text is not None:
+        if "(references/risk-scoring.md)" not in skill_text:
+            errors.append("SKILL.md: missing risk-scoring.md reference link")
+        for fragment in (
+            "**RenGuard Risk Score:**",
+            "#### RG-F-NNN",
+            "**Scoring Dimensions (0–4):**",
+            "**Evidence State / Sensitivity:**",
+            "**Confidence:**",
+        ):
+            if fragment not in skill_text:
+                errors.append(f"SKILL.md: report template missing {fragment!r}")
+
+
+def _validate_example_report(
+    root: Path,
+    relative_name: str,
+    technique_ids: set[str],
+    errors: list[str],
+) -> None:
+    text = _read_text(root, relative_name, errors)
+    if text is None:
+        return
+    lines = text.splitlines()
+    try:
+        header_index = lines.index(
+            "| Finding ID | RenGuard Technique | Risk Score | Severity | Confidence | Exploitability | Location |"
+        )
+    except ValueError:
+        errors.append(f"{relative_name}: missing Phase 3 vulnerability table")
+        return
+
+    table_findings: dict[str, tuple[str, float, str]] = {}
+    for line in lines[header_index + 2:]:
+        if not line.startswith("|"):
+            break
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) != 7:
+            errors.append(f"{relative_name}: malformed vulnerability table row {line!r}")
+            continue
+        finding_id = cells[0].strip("`")
+        if not re.fullmatch(r"RG-F-[0-9]{3}", finding_id):
+            errors.append(f"{relative_name}: malformed finding ID {finding_id!r}")
+            continue
+        if finding_id in table_findings:
+            errors.append(f"{relative_name}: duplicate finding ID {finding_id}")
+        technique_match = TECHNIQUE_ID_PATTERN.search(cells[1])
+        if technique_match is None:
+            errors.append(f"{relative_name}: {finding_id} missing valid technique ID")
+            continue
+        technique_id = technique_match.group(0)
+        if technique_id not in technique_ids:
+            errors.append(f"{relative_name}: {finding_id} uses unknown technique {technique_id}")
+        score_text, severity, confidence, exploitability = cells[2:6]
+        _validate_severity_pair(relative_name, score_text, severity, errors)
+        if confidence not in CONFIDENCE_LEVELS:
+            errors.append(f"{relative_name}: invalid confidence value {confidence!r}")
+        if exploitability not in EXPLOITABILITY_LABELS:
+            errors.append(f"{relative_name}: invalid exploitability label {exploitability!r}")
+        try:
+            score = float(score_text)
+        except ValueError:
+            score = -1.0
+        table_findings[finding_id] = (technique_id, score, severity)
+
+    heading_pattern = re.compile(
+        r"^#### (RG-F-[0-9]{3}) — .+ \[(INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL)\]$",
+        re.MULTILINE,
+    )
+    headings = list(heading_pattern.finditer(text))
+    heading_ids = {match.group(1) for match in headings}
+    if heading_ids != set(table_findings):
+        errors.append(
+            f"{relative_name}: detailed finding IDs must match the vulnerability table"
+        )
+    for line in lines:
+        if line.startswith("#### RG-") and not heading_pattern.fullmatch(line):
+            errors.append(f"{relative_name}: malformed finding heading {line!r}")
+
+    for index, match in enumerate(headings):
+        finding_id = match.group(1)
+        block_end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+        block = text[match.end():block_end]
+        score_match = re.search(
+            r"^\*\*RenGuard Risk Score:\*\* ([0-9]+\.[0-9]) "
+            r"(INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL)$",
+            block,
+            re.MULTILINE,
+        )
+        vector_match = re.search(
+            r"^\*\*Scoring Dimensions \(0–4\):\*\* "
+            r"E=([0-4]), P=([0-4]), H=([0-4]), V=([0-4]), T=([0-4]), D=([0-4]), "
+            r"A=([0-4]), S=([0-4]), B=([0-4]), R=([0-4]), X=([0-4]), G=([0-4])$",
+            block,
+            re.MULTILINE,
+        )
+        if score_match is None or vector_match is None:
+            errors.append(f"{relative_name}: {finding_id} missing score or dimension vector")
+            continue
+        for required_field in (
+            "Attack Technique",
+            "Security Weakness",
+            "Preconditions",
+            "Impact",
+        ):
+            if f"**{required_field}:**" not in block:
+                errors.append(
+                    f"{relative_name}: {finding_id} missing {required_field.lower()}"
+                )
+        score = float(score_match.group(1))
+        severity = score_match.group(2)
+        vector = tuple(int(value) for value in vector_match.groups())
+        calculated = calculate_risk_score(vector)
+        if score != calculated:
+            errors.append(
+                f"{relative_name}: {finding_id} score {score:.1f} does not match "
+                f"dimension formula result {calculated:.1f}"
+            )
+        table_entry = table_findings.get(finding_id)
+        if table_entry is not None and (score, severity) != table_entry[1:]:
+            errors.append(f"{relative_name}: {finding_id} detail/table score mismatch")
+        if severity in {"HIGH", "CRITICAL"} and "**Blast Radius:**" not in block:
+            errors.append(f"{relative_name}: {finding_id} must explicitly assess blast radius")
+
+    for score_text, severity in re.findall(
+        r"^\*\*(?:Overall Risk|Chain Risk):\*\* ([0-9]+\.[0-9]) "
+        r"(INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL)",
+        text,
+        re.MULTILINE,
+    ):
+        _validate_severity_pair(relative_name, score_text, severity, errors)
+    for score_text, severity in re.findall(
+        r"^\| (?:Before remediation|After prompt-only hardening|After runtime enforcement) "
+        r"\| ([0-9]+\.[0-9]) \| (INFORMATIONAL|LOW|MEDIUM|HIGH|CRITICAL) \|",
+        text,
+        re.MULTILINE,
+    ):
+        _validate_severity_pair(relative_name, score_text, severity, errors)
+
+    before_and_report = text.split("## AUDIT REPORT", 1)
+    if len(before_and_report) == 2:
+        synthetic_secrets = set(
+            re.findall(
+                r"\b(?:sk|pk)_[A-Za-z0-9_]{16,}\b|\bBearer [A-Za-z0-9._-]{16,}\b",
+                before_and_report[0],
+            )
+        )
+        for secret in synthetic_secrets:
+            if secret in before_and_report[1]:
+                errors.append(
+                    f"{relative_name}: full synthetic secret is reproduced in the audit report"
+                )
+
+
+def _validate_phase3_examples(
+    root: Path,
+    technique_ids: set[str],
+    errors: list[str],
+) -> None:
+    for relative_name in EXAMPLE_FILES:
+        _validate_example_report(root, relative_name, technique_ids, errors)
+
+
 def validate_repository(root: Path) -> ValidationResult:
     root = root.resolve()
     validation = ValidationResult()
@@ -699,6 +1160,8 @@ def validate_repository(root: Path) -> ValidationResult:
 
     _validate_readme_numbers(root, validation.errors)
     validation.technique_count = _validate_taxonomy(root, validation.errors)
+    _validate_risk_reference(root, validation.errors)
+    _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
     for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES):
         _validate_markdown_links(root, relative_name, validation.errors)
     return validation
