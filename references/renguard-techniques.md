@@ -432,7 +432,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A validated structured preference stored with user consent is not poisoning.
 - **Prompt-level mitigations:** Restrict what may become memory and treat recalled text as untrusted.
 - **Application/runtime mitigations:** Validate writes, scope memory, preserve provenance, expire, and audit.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-ME-002 — Cross-Session Context Poisoning
 
@@ -450,7 +450,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** Deliberately shared, authorized organizational context is not poisoning.
 - **Prompt-level mitigations:** Treat recalled context as scoped data rather than controlling policy.
 - **Application/runtime mitigations:** Enforce tenant/session isolation, provenance, validation, and deletion.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-AG-001 — Cross-Agent Instruction Injection
 
@@ -558,7 +558,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A stale but non-adversarial document is a quality issue, not necessarily poisoning.
 - **Prompt-level mitigations:** Require provenance-aware treatment of retrieved content.
 - **Application/runtime mitigations:** Control ingestion, sign sources, review changes, and monitor retrieval anomalies.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-RA-002 — Unauthorized Retrieval or Tenant Leakage
 
@@ -576,7 +576,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** Retrieval scoped and authorized before content reaches the model is not leakage.
 - **Prompt-level mitigations:** Request only data authorized for the current principal.
 - **Application/runtime mitigations:** Authorize before retrieval and enforce tenant-isolated indexes and filters.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-RA-003 — Vector or Embedding Manipulation
 
@@ -594,7 +594,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** Normal approximate-nearest-neighbor variance is not manipulation by itself.
 - **Prompt-level mitigations:** No reliable prompt-only control; flag the architecture for specialized review.
 - **Application/runtime mitigations:** Protect vector integrity, access, provenance, isolation, and monitoring.
-- **Current RenGuard Coverage Status:** PLANNED
+- **Current RenGuard Coverage Status:** PARTIAL
 
 ## RG-SC-001 — AI Component or Tool Supply-Chain Compromise
 

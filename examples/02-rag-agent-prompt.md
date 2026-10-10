@@ -46,6 +46,27 @@ from all sources you have access to. Never omit information that might be useful
 
 ---
 
+### Phase 5 Specialized Architecture Profile
+
+**RAG detected:** YES — `search_docs` and `search_web` place retrieved content into the
+model workflow, so `references/rag-security.md` applies.
+**Persistent memory detected:** YES — `read_memory` and `write_memory` explicitly span
+sessions, so `references/memory-security.md` applies.
+**Trust classification:** Firm documents are INTERNAL MANAGED CONTENT, web results are
+EXTERNAL CONTENT, and recalled entries are user/model-written memory. None automatically
+has instruction authority.
+**Provenance:** UNKNOWN — source IDs, owners, tenant/matter labels, ingestion time,
+versions, and document-to-chunk lineage are not supplied.
+**Retrieval authorization:** UNKNOWN — the prompt does not establish authenticated
+matter/tenant filters or whether authorization occurs before context assembly.
+**Ingestion, chunking, query rewriting, vector/index controls, and caches:** UNKNOWN —
+their existence or configuration is not inferred. No standalone vector-manipulation or
+cache finding is created without evidence.
+**Memory scope:** Cross-session persistence is explicit; cross-user, cross-tenant, and
+shared-agent scope remain UNKNOWN and are not treated as zero.
+
+---
+
 ### Executive Summary
 
 The Nexus RAG agent is critically vulnerable to indirect injection through every data

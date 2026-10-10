@@ -24,6 +24,15 @@ IDs. It produces a structured report with calibrated findings, OWASP mappings, c
 defensive exploit demonstrations, a hardened rewrite, defense-in-depth recommendations,
 and a deterministic **RenGuard Risk Score** from 0.0–10.0.
 
+RenGuard v2-alpha now conditionally applies specialized, architecture-aware analysis to
+RAG/retrieval and persistent/shared memory systems. RAG analysis covers source trust,
+provenance, ingestion, pre-retrieval authorization, tenant isolation, chunk metadata,
+query rewriting, corpus/index poisoning exposure, caches, and retrieval-to-action chains.
+Memory analysis covers authority separation, read/write authorization, provenance,
+schema, persistence/TTL, cross-session influence, cross-user/tenant isolation,
+shared-agent state, conflict policy, and rollback. These modules activate only when the
+corresponding subsystem is evidenced; they do not invent RAG or memory findings.
+
 Phase 3 findings explicitly separate five concepts:
 
 - **Technique** — what the attacker does or how the security failure occurs.
@@ -168,7 +177,9 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   ├── owasp-llm-2026.md             # OWASP LLM 2026 reference
 │   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
 │   ├── risk-scoring.md                # Canonical RenGuard Risk Score specification
-│   └── hardening-patterns.md         # Canonical defense-in-depth catalog
+│   ├── hardening-patterns.md         # Canonical defense-in-depth catalog
+│   ├── rag-security.md               # Specialized RAG/retrieval audit domain
+│   └── memory-security.md            # Specialized persistent-memory audit domain
 ├── examples/                         # Worked audit examples
 ├── evals/
 │   ├── evals.json                    # Current RenGuard v2-alpha eval definitions
@@ -241,9 +252,13 @@ later phase.
 
 ## What RenGuard Does Not Yet Do
 
-Phase 4 implements classification, formal audit reasoning, deterministic risk
-assessment, and a defense-in-depth remediation catalog, not specialized detection engines.
-RenGuard does not yet implement dedicated MCP, RAG, memory, multimodal, output-security,
+Phase 5 implements classification, formal audit reasoning, deterministic risk
+assessment, defense-in-depth remediation, and specialized RAG/memory audit logic.
+This does not mean RenGuard performs live vector-database scanning, empirical embedding
+geometry analysis, memory-backend inspection, or backend penetration testing. It audits
+the architecture and evidence supplied by the user.
+
+RenGuard does not yet implement dedicated MCP, multimodal, output-security,
 or supply-chain scanners; provider/framework profiles; SARIF;
 large eval expansion; mutation testing; holdout suites; live multi-model execution; or
 statistical confidence intervals. Future work is described as planned work, not current
@@ -252,8 +267,8 @@ functionality.
 The current prompt-level skill also does not directly test application code, model
 weights, network controls, tool implementations, UI output encoding, or stochastic
 attack success rates. Those controls require system-level testing beyond prompt review.
-Phase 3 scoring and Phase 4 hardening behavior have not been measured by a new live model
-benchmark.
+Phase 3 scoring, Phase 4 hardening, and Phase 5 RAG/memory behavior have not been measured
+by a new live model benchmark.
 
 ## Contributing
 

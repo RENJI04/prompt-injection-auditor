@@ -95,6 +95,13 @@ HARDENING_STRENGTHS = {
 }
 IMPLEMENTATION_STATUSES = {"IMPLEMENTED", "PROPOSED", "PROJECTED", "UNKNOWN"}
 SECURITY_FUNCTIONS = {"PREVENT", "CONTAIN", "DETECT", "RECOVER"}
+PHASE5_COVERAGE_STATUSES = {
+    "RG-ME-001": "CORE",
+    "RG-ME-002": "CORE",
+    "RG-RA-001": "CORE",
+    "RG-RA-002": "CORE",
+    "RG-RA-003": "PARTIAL",
+}
 REQUIRED_HARDENING_FIELDS = (
     "Control Layer",
     "Strength",
@@ -167,11 +174,17 @@ TAXONOMY_FILES = (
     "references/owasp-agentic-2026.md",
     "references/risk-scoring.md",
     "references/hardening-patterns.md",
+    "references/rag-security.md",
+    "references/memory-security.md",
 )
 EXAMPLE_FILES = (
     "examples/01-chatbot-prompt.md",
     "examples/02-rag-agent-prompt.md",
     "examples/03-tool-using-agent-prompt.md",
+)
+PHASE5_REFERENCE_FILES = (
+    "references/rag-security.md",
+    "references/memory-security.md",
 )
 CURRENT_TAXONOMY_CONSUMERS = (
     "README.md",
@@ -723,6 +736,16 @@ def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
                 f"{relative_name}: {technique_id} has invalid coverage status "
                 f"{coverage_match.group(1)!r}"
             )
+        expected_phase5_status = PHASE5_COVERAGE_STATUSES.get(technique_id)
+        if (
+            coverage_match
+            and expected_phase5_status is not None
+            and coverage_match.group(1) != expected_phase5_status
+        ):
+            errors.append(
+                f"{relative_name}: {technique_id} Phase 5 coverage status must be "
+                f"{expected_phase5_status}, found {coverage_match.group(1)}"
+            )
 
     return technique_ids
 
@@ -957,6 +980,119 @@ def _validate_hardening_catalog(
                 errors.append(f"SKILL.md: report template missing {fragment!r}")
 
     return len(pattern_ids)
+
+
+def _validate_phase5_references(root: Path, errors: list[str]) -> None:
+    rag_name, memory_name = PHASE5_REFERENCE_FILES
+    rag_text = _read_text(root, rag_name, errors)
+    memory_text = _read_text(root, memory_name, errors)
+    skill_text = _read_text(root, "SKILL.md", errors)
+
+    if rag_text is not None:
+        normalized_rag = " ".join(rag_text.split())
+        for concept in (
+            "**Architecture:**",
+            "**Trust:**",
+            "**Provenance:**",
+            "**Ingestion:**",
+            "**Authorization:**",
+            "**Tenant isolation:**",
+            "**Chunk metadata:**",
+            "**Retrieval:**",
+            "**Query rewriting:**",
+            "**Vector/index poisoning:**",
+            "**Result authority:**",
+            "**Caching:**",
+            "**Tool escalation:**",
+            "**Monitoring:**",
+            "**Recovery:**",
+        ):
+            if concept not in rag_text:
+                errors.append(f"{rag_name}: missing RAG checklist concept {concept!r}")
+        for phrase in (
+            "Retrieved content remains data",
+            "Authorization should constrain retrieval **before** sensitive text enters model context",
+            "Tenant identity comes from trusted session context",
+            "does not claim to measure geometry",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — not zero",
+        ):
+            if phrase not in normalized_rag:
+                errors.append(f"{rag_name}: missing Phase 5 RAG rule {phrase!r}")
+
+    if memory_text is not None:
+        normalized_memory = " ".join(memory_text.split())
+        for concept in (
+            "**Memory existence/type:**",
+            "**Scope:**",
+            "**Ownership:**",
+            "**Read authorization:**",
+            "**Write authorization:**",
+            "**Provenance:**",
+            "**Schema:**",
+            "**Persistence:**",
+            "**TTL:**",
+            "**Cross-session:**",
+            "**Cross-user:**",
+            "**Cross-tenant:**",
+            "**Shared agents:**",
+            "**Conflict policy:**",
+            "**Sensitive data:**",
+            "**Action influence:**",
+            "**Monitoring:**",
+            "**Rollback/delete:**",
+        ):
+            if concept not in memory_text:
+                errors.append(f"{memory_name}: missing memory checklist concept {concept!r}")
+        for phrase in (
+            "Memory is data, not security policy",
+            "Tenant identity comes from trusted",
+            "Monitoring is DETECT, not PREVENT",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — not zero",
+        ):
+            if phrase not in normalized_memory:
+                errors.append(f"{memory_name}: missing Phase 5 memory rule {phrase!r}")
+
+    if skill_text is not None:
+        normalized_skill = " ".join(skill_text.split())
+        for relative_name in PHASE5_REFERENCE_FILES:
+            if f"({relative_name})" not in skill_text:
+                errors.append(f"SKILL.md: missing conditional Phase 5 reference {relative_name!r}")
+        for phrase in (
+            "only when retrieval",
+            "only when persistent",
+            "Do not invent specialized findings",
+        ):
+            if phrase not in normalized_skill:
+                errors.append(f"SKILL.md: missing conditional Phase 5 routing rule {phrase!r}")
+
+    phase5_consumers = {
+        rag_name: rag_text,
+        memory_name: memory_text,
+        "SKILL.md": skill_text,
+    }
+    for relative_name, text in phase5_consumers.items():
+        if text is None:
+            continue
+        for forbidden_pattern, message in (
+            (
+                r"retrieved (?:text|content) is privileged authority",
+                "retrieved text is described as privileged authority",
+            ),
+            (
+                r"user-written memory is trusted system policy",
+                "user-written memory is described as trusted system policy",
+            ),
+            (
+                r"tenant identity (?:is|comes) from (?:the )?user prose",
+                "tenant identity is based solely on user prose",
+            ),
+            (
+                r"UNKNOWN[^\n]{0,80}(?:=|means|is|are treated as)\s*(?:numeric value )?(?:0|zero)",
+                "UNKNOWN architecture facts are treated as zero",
+            ),
+        ):
+            if re.search(forbidden_pattern, text, re.IGNORECASE):
+                errors.append(f"{relative_name}: {message}")
 
 
 def _validate_severity_pair(
@@ -1362,6 +1498,7 @@ def validate_repository(root: Path) -> ValidationResult:
     validation.hardening_pattern_count = _validate_hardening_catalog(
         root, REQUIRED_TECHNIQUE_IDS, validation.errors
     )
+    _validate_phase5_references(root, validation.errors)
     _validate_risk_reference(root, validation.errors)
     _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
     for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES):

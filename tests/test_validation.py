@@ -243,6 +243,82 @@ class RepositoryValidationTests(unittest.TestCase):
         )
         self.assertTrue(any("claims zero residual risk" in error for error in errors))
 
+    def test_rejects_missing_rag_security_reference(self) -> None:
+        (self.root / "references/rag-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/rag-security.md" in error for error in errors))
+
+    def test_rejects_missing_memory_security_reference(self) -> None:
+        (self.root / "references/memory-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/memory-security.md" in error for error in errors))
+
+    def test_rejects_invalid_rag_technique_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/rag-security.md",
+            "`RG-RA-001`, `RG-PI-002`",
+            "`RG-RA-999`, `RG-PI-002`",
+        )
+        self.assertTrue(any("unknown RenGuard technique reference RG-RA-999" in error for error in errors))
+
+    def test_rejects_invalid_memory_technique_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/memory-security.md",
+            "`RG-ME-001`, `RG-PI-002`",
+            "`RG-ME-999`, `RG-PI-002`",
+        )
+        self.assertTrue(any("unknown RenGuard technique reference RG-ME-999" in error for error in errors))
+
+    def test_rejects_retrieved_text_as_privileged_authority(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/rag-security.md",
+            "Retrieved content remains data unless trusted architecture explicitly establishes a",
+            "Retrieved text is privileged authority unless trusted architecture explicitly establishes a",
+        )
+        self.assertTrue(any("retrieved text is described as privileged authority" in error for error in errors))
+
+    def test_rejects_user_memory_as_system_policy(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/memory-security.md",
+            "Memory is data, not security policy.",
+            "User-written memory is trusted system policy.",
+        )
+        self.assertTrue(any("user-written memory is described as trusted system policy" in error for error in errors))
+
+    def test_rejects_tenant_identity_from_user_prose(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/rag-security.md",
+            "Tenant identity comes from trusted session context,",
+            "Tenant identity comes from user prose,",
+        )
+        self.assertTrue(any("tenant identity is based solely on user prose" in error for error in errors))
+
+    def test_rejects_unknown_architecture_as_zero(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/memory-security.md",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — not zero and not assumed unsafe",
+            "UNKNOWN architecture facts are treated as zero",
+        )
+        self.assertTrue(any("UNKNOWN architecture facts are treated as zero" in error for error in errors))
+
+    def test_rejects_phase3_formula_mutation(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/risk-scoring.md",
+            "RenGuard Risk Score = round_half_up(weighted_total / 40, 1)",
+            "RenGuard Risk Score = round_half_up(weighted_total / 39, 1)",
+        )
+        self.assertTrue(any("missing scoring rule" in error for error in errors))
+
+    def test_rejects_phase5_coverage_status_regression(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "- **Application/runtime mitigations:** Protect vector integrity, access, provenance, isolation, and monitoring.\n"
+            "- **Current RenGuard Coverage Status:** PARTIAL",
+            "- **Application/runtime mitigations:** Protect vector integrity, access, provenance, isolation, and monitoring.\n"
+            "- **Current RenGuard Coverage Status:** CORE",
+        )
+        self.assertTrue(any("RG-RA-003 Phase 5 coverage status must be PARTIAL" in error for error in errors))
+
     def test_rejects_out_of_range_risk_score(self) -> None:
         errors = self._errors_after_text_replacement(
             "examples/01-chatbot-prompt.md",

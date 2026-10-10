@@ -5,6 +5,30 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 5 RAG and memory security engine
+
+- Added conditional, architecture-aware RAG and persistent/shared-memory audit domains
+  without turning RenGuard into a standalone scanner.
+- Added canonical RAG guidance for trust, provenance, ingestion, pre-retrieval
+  authorization, tenant isolation, chunk metadata, query rewriting, corpus/index
+  poisoning exposure, caches, citations, and retrieval-to-action chains.
+- Added canonical memory guidance for authority separation, read/write authorization,
+  provenance, typed schemas, persistence/TTL, cross-session/user/tenant isolation,
+  shared-agent state, conflict policy, monitoring, deletion, and rollback.
+- Promoted `RG-RA-001`, `RG-RA-002`, `RG-ME-001`, and `RG-ME-002` from PARTIAL to CORE
+  because the core skill now routes to specialized profiles, checks, scoring guidance,
+  and mitigations. Promoted `RG-RA-003` from PLANNED to PARTIAL for architectural
+  vector/index controls while explicitly excluding empirical vector-space analysis.
+- Expanded the existing RAG and Memory-Enabled Assistant hardening bundles without
+  adding duplicate hardening patterns; the catalog remains at 27 patterns.
+- Updated the RAG worked example with conditional subsystem detection, trust,
+  provenance, retrieval-authorization, memory-scope, and unknown-fact analysis.
+- Extended offline validation and standard-library regression tests for Phase 5 files,
+  checklists, technique references, authority boundaries, tenant identity, evidence
+  handling, coverage status, and Phase 3 formula integrity.
+- Left the historical benchmark and current eval corpus unchanged; no live model,
+  vector-database, or memory-backend benchmark was run.
+
 ### Phase 4 defense-in-depth hardening
 
 - Rebuilt the remediation catalog around 12 control layers and stable, non-renumbering

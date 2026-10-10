@@ -58,6 +58,13 @@ or residual risk. Use its rubric and formula; do not invent risk values.
 Read the [hardening patterns catalog](references/hardening-patterns.md) when writing
 fixes and the hardened rewrite.
 
+After architecture classification, conditionally load the specialized
+[RAG security reference](references/rag-security.md) only when retrieval, search,
+vector/embedding indexes, or retrieved context exists. Conditionally load the
+[memory security reference](references/memory-security.md) only when persistent,
+cross-session, shared-agent, multi-user, or multi-tenant memory exists. Do not invent
+specialized findings when the corresponding subsystem is absent.
+
 ## Behavior Protocol
 
 Work through these steps in order for every audit:
@@ -73,6 +80,15 @@ retrieval, external destinations, and trust boundaries. Determine whether the ta
 agentic: tools/actions, planning, persistent state, autonomous execution, delegation,
 sub-agents, inter-agent communication, or external side effects are agentic signals.
 A basic text-only chatbot is not automatically an agent.
+
+If RAG is present, profile supported ingestion, provenance, trust, authorization,
+tenant, chunk/index, retrieval, query-rewrite, cache, context-assembly, and action facts;
+treat retrieved data as non-privileged content unless a protected control path explicitly
+establishes authority. If persistent/shared memory is present, profile type, owner, scope,
+read/write authorization, provenance, schema, lifetime, cross-session/principal reach,
+action influence, and recovery. Mark missing architecture facts UNKNOWN rather than zero
+or assumed unsafe. Tenant identity comes from authenticated application context, not
+conversation text; user- or model-written memory never becomes security policy.
 
 **Step 3 -- Detect RenGuard techniques**
 Scan against the technique catalog and assign the most specific applicable `RG-` ID.
