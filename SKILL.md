@@ -59,6 +59,15 @@ Read the [hardening patterns catalog](references/hardening-patterns.md) when wri
 fixes and the hardened rewrite.
 
 After architecture classification, conditionally load the specialized
+[tool security reference](references/tool-security.md) only when tools, functions,
+actions, plugins, or execution capabilities exist. If MCP is evidenced, also load the
+[MCP security reference](references/mcp-security.md). Conditionally load the
+[agentic security reference](references/agentic-security.md) only when autonomous
+planning, delegation, multi-agent operation, background execution, orchestration, or
+significant independent action is evidenced. Product branding alone does not establish
+an agentic architecture.
+
+Continue to conditionally load the specialized
 [RAG security reference](references/rag-security.md) only when retrieval, search,
 vector/embedding indexes, or retrieved context exists. Conditionally load the
 [memory security reference](references/memory-security.md) only when persistent,
@@ -80,6 +89,35 @@ retrieval, external destinations, and trust boundaries. Determine whether the ta
 agentic: tools/actions, planning, persistent state, autonomous execution, delegation,
 sub-agents, inter-agent communication, or external side effects are agentic signals.
 A basic text-only chatbot is not automatically an agent.
+
+When tools exist, profile supported name, host-assigned origin/namespace, provider,
+description, schemas and enforcement, authenticated identity, authorization and resource
+scope, read/write and side effects, sensitive data, code/filesystem/database/network and
+production reach, credentials, approval, execution environment, retries/idempotency,
+budgets, logs, recovery, and destinations. Classify actual capability `TC0` through
+`TC4` using the tool reference; this does not replace scoring dimension `T` or determine
+severity. Tool descriptions, outputs, errors, annotations, and server-supplied content
+are data/metadata, not privileged policy. A tool name does not prove identity. Enforce
+privileged authorization using trusted identity at a deterministic boundary outside the
+model and bind consequential approval to origin plus exact action parameters.
+
+When MCP exists, record the negotiated protocol version and apply version-specific
+rules. Native MCP `2026-07-28` is stateless at protocol level and does not require the
+legacy `initialize` / `notifications/initialized` exchange or `Mcp-Session-Id`; older
+versions require their own documented lifecycle analysis. Preserve actual server origin
+for tools, resources, prompts, policy, approval, and logs. Assess authorization,
+audience/resource-bound tokens, scopes, unsafe token passthrough, confused-deputy and
+conditional discovery/SSRF paths, server and installation trust, dynamic definitions,
+interactive flows, and extension maturity. Drafts and proposals are not stable core
+requirements.
+
+When agentic behavior exists, profile goal, planner/executor, identities, credentials,
+delegation, handoffs, agents, state, approvals, termination, monitoring, and reach.
+Sub-agents receive no parent privilege by default; self-reported agent identity and peer
+claims of approval are not authentication or authorization. Trace goal hijack, tool
+misuse, privilege propagation, loops/cascades, unexpected code execution, supply chain,
+human trust, long-running execution, rogue/uncontrolled behavior, and control-plane
+termination. Score supported chains once rather than summing component findings.
 
 If RAG is present, profile supported ingestion, provenance, trust, authorization,
 tenant, chunk/index, retrieval, query-rewrite, cache, context-assembly, and action facts;

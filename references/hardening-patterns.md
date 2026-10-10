@@ -238,7 +238,7 @@ entry records a primary control layer and strength; deployments may add stronger
 - **Purpose:** Expose only tools and operations required for the active task.
 - **Threats Addressed:** Excessive agency, tool misuse, and unintended writes.
 - **Applicable RenGuard Techniques:** `RG-TL-001`, `RG-TL-004`, `RG-AG-001`
-- **Implementation Guidance:** Allowlist tools per task and identity, separate reads/writes, remove shell or generic HTTP access when narrower tools suffice, and gate privileged operations.
+- **Implementation Guidance:** Allowlist tools per task and identity, bind entries to host-assigned origin/namespace plus reviewed definition/version where proportionate, separate reads/writes, remove shell or generic HTTP access when narrower tools suffice, and gate privileged operations. A mutable tool or server display name is not identity.
 - **Example:** A document-review task receives read-only search, not deployment or messaging tools.
 - **Limitations:** An allowed tool can still be misused within scope.
 - **Failure Modes:** Giving every agent every tool and relying on prompt restraint.
@@ -544,7 +544,9 @@ tools, consequences, and threat model.
 | Bundle | Layered starting controls |
 |---|---|
 | RAG Assistant | `RG-HARD-P-001`, `RG-HARD-AUTHZ-001`, `RG-HARD-DATA-002`, `RG-HARD-AGENT-001`, `RG-HARD-TOOL-002`, `RG-HARD-NET-001`, `RG-HARD-MON-001`, `RG-HARD-MON-002`, `RG-HARD-REC-001` |
-| Tool-Using Agent | `RG-HARD-P-001`, `RG-HARD-AUTHZ-002`, `RG-HARD-TOOL-001`, `RG-HARD-TOOL-002`, `RG-HARD-RUN-001`, `RG-HARD-NET-001`, `RG-HARD-HITL-001`, `RG-HARD-MON-001` |
+| Tool-Using Agent | `RG-HARD-P-001`, `RG-HARD-AUTHN-002`, `RG-HARD-AUTHZ-002`, `RG-HARD-TOOL-001`, `RG-HARD-TOOL-002`, `RG-HARD-TOOL-003`, `RG-HARD-RUN-001`, `RG-HARD-NET-001`, `RG-HARD-HITL-001`, `RG-HARD-MON-001`, `RG-HARD-REC-001`, `RG-HARD-REC-002` |
+| MCP Deployment | `RG-HARD-AUTHN-002`, `RG-HARD-AUTHZ-001`, `RG-HARD-AUTHZ-002`, `RG-HARD-DATA-001`, `RG-HARD-TOOL-001`, `RG-HARD-TOOL-002`, `RG-HARD-RUN-001`, `RG-HARD-NET-001`, `RG-HARD-NET-002`, `RG-HARD-HITL-001`, `RG-HARD-MON-001`, `RG-HARD-REC-001`, `RG-HARD-REC-002` |
+| Multi-Agent System | `RG-HARD-P-001`, `RG-HARD-AUTHN-002`, `RG-HARD-AUTHZ-002`, `RG-HARD-AGENT-001`, `RG-HARD-AGENT-002`, `RG-HARD-RUN-001`, `RG-HARD-NET-001`, `RG-HARD-HITL-001`, `RG-HARD-RES-001`, `RG-HARD-MON-001`, `RG-HARD-MON-002`, `RG-HARD-REC-001`, `RG-HARD-REC-002` |
 | Coding Agent | `RG-HARD-AUTHN-002`, `RG-HARD-AUTHZ-002`, `RG-HARD-RUN-001`, `RG-HARD-RUN-002`, `RG-HARD-NET-001`, `RG-HARD-OUT-001`, `RG-HARD-REC-001` |
 | Customer Support | `RG-HARD-AUTHN-001`, `RG-HARD-AUTHZ-001`, `RG-HARD-DATA-001`, `RG-HARD-DATA-002`, `RG-HARD-HITL-001`, `RG-HARD-MON-001` |
 | Autonomous Production Agent | `RG-HARD-AUTHN-002`, `RG-HARD-AUTHZ-002`, `RG-HARD-AGENT-002`, `RG-HARD-RUN-001`, `RG-HARD-NET-001`, `RG-HARD-HITL-001`, `RG-HARD-REC-001` |

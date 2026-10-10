@@ -396,7 +396,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A validated parameter within an authorized schema is not manipulation.
 - **Prompt-level mitigations:** State parameter constraints and require confirmation for sensitive values.
 - **Application/runtime mitigations:** Bind parameters, validate destinations, authorize resources, and avoid shells.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-TL-005 — Untrusted External Action or Exfiltration
 
@@ -504,7 +504,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A contained component failure stopped by validation is not cascading.
 - **Prompt-level mitigations:** Require downstream verification and explicit halt conditions.
 - **Application/runtime mitigations:** Add circuit breakers, idempotency, budgets, isolation, and rollback.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-AG-004 — Rogue or Compromised Agent Behavior
 
@@ -522,7 +522,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A bounded agent error without adversarial or persistent divergence is not rogue behavior.
 - **Prompt-level mitigations:** Require agents to expose provenance and reject peer authority escalation.
 - **Application/runtime mitigations:** Attest agents, monitor behavior, isolate peers, revoke identity, and contain actions.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-AG-005 — Human-Agent Trust Exploitation
 
@@ -540,7 +540,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** An informed approval based on accurate, independently verifiable evidence is not trust exploitation.
 - **Prompt-level mitigations:** Require clear uncertainty, evidence, and non-coercive approval language.
 - **Application/runtime mitigations:** Use independent verification, meaningful approvals, rate limits, and anti-fatigue workflows.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-RA-001 — Retrieval Poisoning
 
@@ -612,7 +612,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** Untrusted document content alone is not a component supply-chain compromise.
 - **Prompt-level mitigations:** Treat component/tool descriptions as untrusted and flag provenance gaps.
 - **Application/runtime mitigations:** Pin, sign, attest, inventory, sandbox, and monitor components.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-EX-001 — Unexpected Code Execution
 
@@ -630,7 +630,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** Sandboxed code execution explicitly requested and authorized is not unexpected.
 - **Prompt-level mitigations:** Require confirmation and prohibit execution derived from untrusted content.
 - **Application/runtime mitigations:** Sandbox, allowlist, isolate credentials, mediate commands, and log execution.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-OU-001 — Unsafe Downstream Output Execution
 
@@ -666,7 +666,7 @@ apply only to agentic targets.
 - **Boundary / non-example:** A large authorized workload inside enforced budgets is not unbounded.
 - **Prompt-level mitigations:** Define iteration, retry, and delegation limits.
 - **Application/runtime mitigations:** Enforce quotas, budgets, timeouts, depth limits, and circuit breakers.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-MI-001 — Security-Relevant Misinformation
 

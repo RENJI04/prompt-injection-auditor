@@ -5,6 +5,41 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 6 tool, MCP, and agentic security engine
+
+- Added conditional specialized audit domains for generic AI tools/functions, MCP
+  deployments, autonomous agents, and multi-agent architectures.
+- Added canonical tool guidance for `TC0`–`TC4` capability classification, origin and
+  name collisions, description/output/error injection, schema and semantic validation,
+  deterministic authorization, credentials, composition, code execution, retries, and
+  budgets. Capability class does not replace the Phase 3 score.
+- Verified the final stable MCP `2026-07-28` specification on 2026-10-10 from official
+  project sources and documented its stateless lifecycle, JSON Schema 2020-12 behavior,
+  authorization and token isolation, confused-deputy and conditional discovery/SSRF
+  analysis, metadata trust, dynamic capabilities, MRTR, deprecated sampling, and
+  extension maturity. Native modern deployments are not checked against obsolete
+  `initialize` or `Mcp-Session-Id` requirements.
+- Added architecture-aware agent analysis for goals, identity and privilege, scoped
+  delegation, no default sub-agent privilege inheritance, structured handoffs, loops,
+  cascading failures, human trust, unexpected code execution, supply chain,
+  long-running/rogue execution, and independently enforced termination and recovery.
+- Expanded the existing Tool-Using Agent bundle and added MCP Deployment and
+  Multi-Agent System bundles by reusing the 27 canonical hardening patterns; no
+  duplicate pattern was added.
+- Promoted `RG-TL-004`, `RG-AG-003`, `RG-AG-004`, `RG-AG-005`, `RG-SC-001`,
+  `RG-EX-001`, and `RG-RC-001` from PARTIAL to CORE because the core skill now routes
+  to specialized profiling, checks, chain analysis, verification, and controls. The
+  resulting posture is 32 CORE, 5 PARTIAL, and 1 PLANNED technique.
+- Upgraded the autonomous coding-agent example with a tool inventory, capability
+  classes, origin/authority boundaries, composition and attack-chain analysis,
+  parameter-bound approval, monitoring, containment, and recovery.
+- Extended offline validation and standard-library regression tests for all Phase 6
+  references, routing, MCP provenance/version rules, tool and agent authority
+  boundaries, approval binding, token handling, coverage transitions, and unchanged
+  Phase 3 scoring.
+- Left the historical benchmark and current eval corpus unchanged; no MCP server was
+  contacted, no live penetration test was performed, and no model benchmark was run.
+
 ### Phase 5 RAG and memory security engine
 
 - Added conditional, architecture-aware RAG and persistent/shared-memory audit domains

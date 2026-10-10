@@ -102,6 +102,19 @@ PHASE5_COVERAGE_STATUSES = {
     "RG-RA-002": "CORE",
     "RG-RA-003": "PARTIAL",
 }
+PHASE6_COVERAGE_STATUSES = {
+    "RG-TL-004": "CORE",
+    "RG-AG-003": "CORE",
+    "RG-AG-004": "CORE",
+    "RG-AG-005": "CORE",
+    "RG-SC-001": "CORE",
+    "RG-EX-001": "CORE",
+    "RG-RC-001": "CORE",
+}
+PHASE6_COVERAGE_COUNTS = {"CORE": 32, "PARTIAL": 5, "PLANNED": 1}
+MCP_STABLE_VERSION = "2026-07-28"
+MCP_VERIFIED_ON = "2026-10-10"
+TOOL_CAPABILITY_CLASSES = {"TC0", "TC1", "TC2", "TC3", "TC4"}
 REQUIRED_HARDENING_FIELDS = (
     "Control Layer",
     "Strength",
@@ -176,6 +189,9 @@ TAXONOMY_FILES = (
     "references/hardening-patterns.md",
     "references/rag-security.md",
     "references/memory-security.md",
+    "references/tool-security.md",
+    "references/mcp-security.md",
+    "references/agentic-security.md",
 )
 EXAMPLE_FILES = (
     "examples/01-chatbot-prompt.md",
@@ -185,6 +201,11 @@ EXAMPLE_FILES = (
 PHASE5_REFERENCE_FILES = (
     "references/rag-security.md",
     "references/memory-security.md",
+)
+PHASE6_REFERENCE_FILES = (
+    "references/tool-security.md",
+    "references/mcp-security.md",
+    "references/agentic-security.md",
 )
 CURRENT_TAXONOMY_CONSUMERS = (
     "README.md",
@@ -714,6 +735,7 @@ def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
     for technique_id in sorted(technique_ids - REQUIRED_TECHNIQUE_IDS):
         errors.append(f"{relative_name}: undocumented RenGuard technique ID {technique_id}")
 
+    coverage_counts = {"CORE": 0, "PARTIAL": 0, "PLANNED": 0}
     for index, match in enumerate(heading_matches):
         technique_id = match.group(1)
         block_end = (
@@ -736,6 +758,8 @@ def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
                 f"{relative_name}: {technique_id} has invalid coverage status "
                 f"{coverage_match.group(1)!r}"
             )
+        elif coverage_match:
+            coverage_counts[coverage_match.group(1)] += 1
         expected_phase5_status = PHASE5_COVERAGE_STATUSES.get(technique_id)
         if (
             coverage_match
@@ -746,6 +770,22 @@ def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
                 f"{relative_name}: {technique_id} Phase 5 coverage status must be "
                 f"{expected_phase5_status}, found {coverage_match.group(1)}"
             )
+        expected_phase6_status = PHASE6_COVERAGE_STATUSES.get(technique_id)
+        if (
+            coverage_match
+            and expected_phase6_status is not None
+            and coverage_match.group(1) != expected_phase6_status
+        ):
+            errors.append(
+                f"{relative_name}: {technique_id} Phase 6 coverage status must be "
+                f"{expected_phase6_status}, found {coverage_match.group(1)}"
+            )
+
+    if coverage_counts != PHASE6_COVERAGE_COUNTS:
+        errors.append(
+            f"{relative_name}: Phase 6 coverage counts must be {PHASE6_COVERAGE_COUNTS}, "
+            f"found {coverage_counts}"
+        )
 
     return technique_ids
 
@@ -947,7 +987,13 @@ def _validate_hardening_catalog(
         if fragment.lower() not in text.lower():
             errors.append(f"{relative_name}: missing hardening rule {fragment!r}")
 
-    hardening_consumers = (relative_name, "SKILL.md", *EXAMPLE_FILES)
+    hardening_consumers = (
+        relative_name,
+        "SKILL.md",
+        *PHASE5_REFERENCE_FILES,
+        *PHASE6_REFERENCE_FILES,
+        *EXAMPLE_FILES,
+    )
     for consumer in hardening_consumers:
         consumer_text = text if consumer == relative_name else _read_text(root, consumer, errors)
         if consumer_text is None:
@@ -1093,6 +1139,143 @@ def _validate_phase5_references(root: Path, errors: list[str]) -> None:
         ):
             if re.search(forbidden_pattern, text, re.IGNORECASE):
                 errors.append(f"{relative_name}: {message}")
+
+
+def _validate_phase6_references(root: Path, errors: list[str]) -> None:
+    tool_name, mcp_name, agentic_name = PHASE6_REFERENCE_FILES
+    tool_text = _read_text(root, tool_name, errors)
+    mcp_text = _read_text(root, mcp_name, errors)
+    agentic_text = _read_text(root, agentic_name, errors)
+    skill_text = _read_text(root, "SKILL.md", errors)
+    example_text = _read_text(root, "examples/03-tool-using-agent-prompt.md", errors)
+
+    if tool_text is not None:
+        for capability_class in sorted(TOOL_CAPABILITY_CLASSES):
+            if f"`{capability_class}`" not in tool_text:
+                errors.append(f"{tool_name}: missing tool capability class {capability_class}")
+        for concept in (
+            "## Tool profile",
+            "## Authority, descriptions, origin, and collisions",
+            "## Inputs, outputs, errors, and parameters",
+            "## Authorization, identity, credentials, and approval",
+            "## Composition, code execution, budgets, and chains",
+            "## Metadata and annotations",
+        ):
+            if concept not in tool_text:
+                errors.append(f"{tool_name}: missing Phase 6 tool concept {concept!r}")
+        for phrase in (
+            "tool name does not prove identity",
+            "Structured output remains untrusted content",
+            "model judgment alone does not authorize a privileged tool call",
+            "not hard enforcement",
+            "material changes require fresh approval",
+        ):
+            if phrase not in " ".join(tool_text.split()):
+                errors.append(f"{tool_name}: missing Phase 6 tool rule {phrase!r}")
+
+    phase6_texts = {
+        tool_name: tool_text,
+        mcp_name: mcp_text,
+        agentic_name: agentic_text,
+        "SKILL.md": skill_text,
+        "examples/03-tool-using-agent-prompt.md": example_text,
+    }
+    for relative_name, text in phase6_texts.items():
+        if text is None:
+            continue
+        for capability_class in set(re.findall(r"\bTC[0-9]+\b", text)):
+            if capability_class not in TOOL_CAPABILITY_CLASSES:
+                errors.append(
+                    f"{relative_name}: invalid tool capability class {capability_class}"
+                )
+        for forbidden_pattern, message in (
+            (r"tool annotations? (?:are|is) (?:trusted|hard enforcement)",
+             "tool annotations are treated as hard enforcement"),
+            (r"(?:readOnlyHint|destructiveHint) guarantees?",
+             "tool annotation is described as a guarantee"),
+            (r"tool output (?:is|becomes) (?:a )?privileged instruction",
+             "tool output is treated as privileged instructions"),
+            (r"tool name (?:proves|is) identity", "tool name is treated as identity"),
+            (r"model(?:-only| alone) authoriz(?:e|es) (?:a )?privileged tool",
+             "model-only authorization is allowed for a privileged tool"),
+            (r"sub-agents? (?:automatically )?inherit (?:all |every )?(?:parent )?privilege",
+             "sub-agents automatically inherit privilege"),
+            (r"self-reported agent (?:name|identity) is authenticated",
+             "self-reported agent identity is treated as authenticated"),
+            (r"approval applies to any parameters", "human approval is not parameter-bound"),
+            (r"forward (?:the )?(?:client |access )?token (?:unchanged )?to (?:a |the )?downstream",
+             "unsafe token passthrough is recommended"),
+            (r"(?:native|current|stable)[^\n]{0,100}(?:Mcp-Session-Id|initialize)[^\n]{0,50}(?:is )?required",
+             "obsolete MCP session lifecycle is required for the current stable version"),
+            (r"(?:draft|proposal)[^\n]{0,80}\b(?:is|are) (?:a )?normative requirement",
+             "draft/proposal is labeled as a normative MCP requirement"),
+        ):
+            if re.search(forbidden_pattern, text, re.IGNORECASE):
+                errors.append(f"{relative_name}: {message}")
+
+    if mcp_text is not None:
+        version_match = re.search(
+            r"\*\*Verified stable MCP version:\*\* `([^`]+)`", mcp_text
+        )
+        if version_match is None or version_match.group(1) != MCP_STABLE_VERSION:
+            errors.append(
+                f"{mcp_name}: verified stable MCP version must be {MCP_STABLE_VERSION}"
+            )
+        verified_match = re.search(r"\*\*Verified on:\*\* `([^`]+)`", mcp_text)
+        if verified_match is None or verified_match.group(1) != MCP_VERIFIED_ON:
+            errors.append(f"{mcp_name}: MCP verification date must be {MCP_VERIFIED_ON}")
+        for phrase in (
+            "official Model Context Protocol specification/project",
+            "core is stateless at protocol level",
+            "removed the legacy `initialize` / `notifications/initialized` exchange and `Mcp-Session-Id`",
+            "Unsafe token passthrough is prohibited",
+            "actual server origin, tool, normalized parameters",
+            "JSON Schema 2020-12",
+            "draft and experimental extensions remain non-normative",
+        ):
+            if phrase not in " ".join(mcp_text.split()):
+                errors.append(f"{mcp_name}: missing Phase 6 MCP rule {phrase!r}")
+
+    if agentic_text is not None:
+        for phrase in (
+            "marketing calls a product an “agent.”",
+            "no parent privilege by default",
+            "is not authenticated identity or authorization",
+            "Monitoring is DETECT, not PREVENT",
+            "Termination cannot rely on telling the model “please stop.”",
+            "Material changes require fresh approval",
+        ):
+            if phrase not in " ".join(agentic_text.split()):
+                errors.append(f"{agentic_name}: missing Phase 6 agentic rule {phrase!r}")
+
+    if skill_text is not None:
+        normalized_skill = " ".join(skill_text.split())
+        for relative_name in PHASE6_REFERENCE_FILES:
+            if f"({relative_name})" not in skill_text:
+                errors.append(f"SKILL.md: missing conditional Phase 6 reference {relative_name!r}")
+        for phrase in (
+            "only when tools",
+            "If MCP is evidenced",
+            "only when autonomous planning",
+            "Product branding alone does not establish an agentic architecture",
+        ):
+            if phrase not in normalized_skill:
+                errors.append(f"SKILL.md: missing conditional Phase 6 routing rule {phrase!r}")
+
+    if example_text is not None:
+        for phrase in (
+            "### Phase 6 Architecture and Tool Profile",
+            "Tool names do not prove identity",
+            "`TC4`",
+            "host-assigned origin",
+            "Sub-agents receive no parent privilege by default",
+            "independent control plane",
+        ):
+            if phrase not in " ".join(example_text.split()):
+                errors.append(
+                    "examples/03-tool-using-agent-prompt.md: missing Phase 6 example rule "
+                    f"{phrase!r}"
+                )
 
 
 def _validate_severity_pair(
@@ -1499,9 +1682,10 @@ def validate_repository(root: Path) -> ValidationResult:
         root, REQUIRED_TECHNIQUE_IDS, validation.errors
     )
     _validate_phase5_references(root, validation.errors)
+    _validate_phase6_references(root, validation.errors)
     _validate_risk_reference(root, validation.errors)
     _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
-    for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES):
+    for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES, *EXAMPLE_FILES):
         _validate_markdown_links(root, relative_name, validation.errors)
     return validation
 

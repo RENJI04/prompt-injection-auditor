@@ -25,13 +25,32 @@ defensive exploit demonstrations, a hardened rewrite, defense-in-depth recommend
 and a deterministic **RenGuard Risk Score** from 0.0–10.0.
 
 RenGuard v2-alpha now conditionally applies specialized, architecture-aware analysis to
-RAG/retrieval and persistent/shared memory systems. RAG analysis covers source trust,
+AI tools/functions, MCP deployments, agentic and multi-agent systems, RAG/retrieval,
+and persistent/shared memory systems. Tool analysis covers capability classes, origin,
+descriptions, schemas, output and recovery injection, deterministic authorization,
+credentials, composition, code execution, retries, budgets, and action-bound approval.
+MCP analysis is protocol-version aware and covers server/tool trust, audience- and
+scope-bound authorization, unsafe token passthrough, confused-deputy and conditional
+discovery/SSRF paths, resources/prompts, dynamic capability mutation, supply chain, and
+interactive flows. Agentic analysis covers autonomy, goal hijack, identity and privilege
+propagation, scoped delegation, inter-agent handoff, cascading failure, human trust,
+unexpected code execution, supply chain, long-running/rogue execution, and independently
+enforced termination.
+
+RAG analysis covers source trust,
 provenance, ingestion, pre-retrieval authorization, tenant isolation, chunk metadata,
 query rewriting, corpus/index poisoning exposure, caches, and retrieval-to-action chains.
 Memory analysis covers authority separation, read/write authorization, provenance,
 schema, persistence/TTL, cross-session influence, cross-user/tenant isolation,
 shared-agent state, conflict policy, and rollback. These modules activate only when the
 corresponding subsystem is evidenced; they do not invent RAG or memory findings.
+
+RenGuard performs evidence-bounded architecture, configuration, prompt, and supplied
+artifact review. It does **not** automatically connect to arbitrary MCP servers, execute
+their tools, penetrate remote infrastructure, validate a live OAuth/IAM backend, or
+prove runtime controls without evidence. Architecture/configuration review is not live
+penetration testing, MCP compliance is not proof that a server is benign, and framework
+mapping is not empirical coverage of every risk.
 
 Phase 3 findings explicitly separate five concepts:
 
@@ -107,20 +126,21 @@ RenGuard uses three layers:
 | Prompt Injection | `RG-PI` | 10 | CORE and PARTIAL |
 | Hidden Context / Information Exposure | `RG-HC` | 4 | CORE |
 | Privilege / Authority | `RG-PR` | 3 | CORE |
-| Tools / Actions | `RG-TL` | 5 | CORE and PARTIAL |
-| Memory / Context | `RG-ME` | 2 | PARTIAL |
-| Agent / Multi-Agent | `RG-AG` | 5 | CORE and PARTIAL |
-| Retrieval / Vector / RAG | `RG-RA` | 3 | PARTIAL and PLANNED |
-| Supply Chain | `RG-SC` | 1 | PARTIAL |
-| Execution / Code | `RG-EX` | 1 | PARTIAL |
+| Tools / Actions | `RG-TL` | 5 | CORE |
+| Memory / Context | `RG-ME` | 2 | CORE |
+| Agent / Multi-Agent | `RG-AG` | 5 | CORE |
+| Retrieval / Vector / RAG | `RG-RA` | 3 | CORE and PARTIAL |
+| Supply Chain | `RG-SC` | 1 | CORE |
+| Execution / Code | `RG-EX` | 1 | CORE |
 | Output Handling | `RG-OU` | 1 | PARTIAL |
-| Resource / Consumption | `RG-RC` | 1 | PARTIAL |
+| Resource / Consumption | `RG-RC` | 1 | CORE |
 | Misinformation / Grounding | `RG-MI` | 1 | PARTIAL |
 | Multimodal | `RG-MM` | 1 | PLANNED |
 
 See the [taxonomy methodology and v1→v2 crosswalk](references/vulnerability-taxonomy.md)
 and the [canonical technique catalog](references/renguard-techniques.md). `CORE`,
 `PARTIAL`, and `PLANNED` describe available audit guidance, not benchmark percentages.
+The current catalog contains 32 CORE, 5 PARTIAL, and 1 PLANNED technique.
 
 ## How to Use the Skill
 
@@ -178,6 +198,9 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
 │   ├── risk-scoring.md                # Canonical RenGuard Risk Score specification
 │   ├── hardening-patterns.md         # Canonical defense-in-depth catalog
+│   ├── tool-security.md               # Generic tool/function specialized audit domain
+│   ├── mcp-security.md                # Version-aware MCP specialized audit domain
+│   ├── agentic-security.md            # Agentic/multi-agent specialized audit domain
 │   ├── rag-security.md               # Specialized RAG/retrieval audit domain
 │   └── memory-security.md            # Specialized persistent-memory audit domain
 ├── examples/                         # Worked audit examples

@@ -319,6 +319,133 @@ class RepositoryValidationTests(unittest.TestCase):
         )
         self.assertTrue(any("RG-RA-003 Phase 5 coverage status must be PARTIAL" in error for error in errors))
 
+    def test_rejects_missing_tool_security_reference(self) -> None:
+        (self.root / "references/tool-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/tool-security.md" in error for error in errors))
+
+    def test_rejects_missing_mcp_security_reference(self) -> None:
+        (self.root / "references/mcp-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/mcp-security.md" in error for error in errors))
+
+    def test_rejects_missing_agentic_security_reference(self) -> None:
+        (self.root / "references/agentic-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/agentic-security.md" in error for error in errors))
+
+    def test_rejects_invalid_tool_capability_class(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/tool-security.md", "`TC0`", "`TC9`"
+        )
+        self.assertTrue(any("invalid tool capability class TC9" in error for error in errors))
+
+    def test_rejects_tool_annotation_as_hard_enforcement(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/tool-security.md",
+            "they are not hard enforcement",
+            "tool annotations are hard enforcement",
+        )
+        self.assertTrue(any("annotations are treated as hard enforcement" in error for error in errors))
+
+    def test_rejects_tool_output_as_privileged_instruction(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/tool-security.md",
+            "Structured output remains untrusted content",
+            "Tool output is privileged instruction",
+        )
+        self.assertTrue(any("tool output is treated as privileged" in error for error in errors))
+
+    def test_rejects_tool_name_as_identity(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/tool-security.md",
+            "`send_email`, or `read_file`; a tool name does not prove identity.",
+            "`send_email`, or `read_file`; tool name proves identity.",
+        )
+        self.assertTrue(any("tool name is treated as identity" in error for error in errors))
+
+    def test_rejects_unknown_mcp_stable_version_metadata(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/mcp-security.md", "`2026-07-28`", "`2026-99-99`"
+        )
+        self.assertTrue(any("verified stable MCP version" in error for error in errors))
+
+    def test_rejects_obsolete_mcp_session_requirement_for_current_version(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/mcp-security.md",
+            "For native `2026-07-28`, the core is stateless at protocol level.",
+            "For native `2026-07-28`, Mcp-Session-Id is required.",
+        )
+        self.assertTrue(any("obsolete MCP session lifecycle" in error for error in errors))
+
+    def test_rejects_unsafe_token_passthrough_guidance(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/mcp-security.md",
+            "Unsafe token passthrough is prohibited",
+            "Forward the client token unchanged to the downstream API",
+        )
+        self.assertTrue(any("unsafe token passthrough" in error for error in errors))
+
+    def test_rejects_high_risk_mcp_approval_without_server_origin(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/mcp-security.md",
+            "actual server\norigin, tool, normalized parameters",
+            "tool and normalized parameters",
+        )
+        self.assertTrue(any("actual server origin" in error for error in errors))
+
+    def test_rejects_model_only_privileged_tool_authorization(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/tool-security.md",
+            "model\njudgment alone does not authorize a privileged tool call",
+            "model alone authorizes a privileged tool call",
+        )
+        self.assertTrue(any("model-only authorization" in error for error in errors))
+
+    def test_rejects_sub_agent_automatic_privilege_inheritance(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/agentic-security.md",
+            "Sub-agents receive **no parent\nprivilege by default**",
+            "Sub-agents automatically inherit all parent privilege",
+        )
+        self.assertTrue(any("sub-agents automatically inherit privilege" in error for error in errors))
+
+    def test_rejects_self_reported_agent_identity_as_authenticated(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/agentic-security.md",
+            "self-reported agent names",
+            "self-reported agent identity is authenticated",
+        )
+        self.assertTrue(any("self-reported agent identity" in error for error in errors))
+
+    def test_rejects_unbound_human_approval(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/agentic-security.md",
+            "Material changes require fresh approval",
+            "Approval applies to any parameters",
+        )
+        self.assertTrue(any("human approval is not parameter-bound" in error for error in errors))
+
+    def test_rejects_unsupported_agentic_coverage_change(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "- **Application/runtime mitigations:** Add circuit breakers, idempotency, budgets, isolation, and rollback.\n"
+            "- **Current RenGuard Coverage Status:** CORE",
+            "- **Application/runtime mitigations:** Add circuit breakers, idempotency, budgets, isolation, and rollback.\n"
+            "- **Current RenGuard Coverage Status:** PARTIAL",
+        )
+        self.assertTrue(any("RG-AG-003 Phase 6 coverage status must be CORE" in error for error in errors))
+
+    def test_rejects_draft_mcp_proposal_as_normative(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/mcp-security.md",
+            "SEP incorporated into `2026-07-28` explains a stable change; a proposal, draft, release\n"
+            "candidate, experimental feature, or independently versioned extension is not a\n"
+            "normative core requirement",
+            "a draft is a normative requirement",
+        )
+        self.assertTrue(any("draft/proposal is labeled" in error for error in errors))
+
     def test_rejects_out_of_range_risk_score(self) -> None:
         errors = self._errors_after_text_replacement(
             "examples/01-chatbot-prompt.md",
