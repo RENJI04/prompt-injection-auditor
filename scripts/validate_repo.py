@@ -111,10 +111,15 @@ PHASE6_COVERAGE_STATUSES = {
     "RG-EX-001": "CORE",
     "RG-RC-001": "CORE",
 }
-PHASE6_COVERAGE_COUNTS = {"CORE": 32, "PARTIAL": 5, "PLANNED": 1}
+PHASE7_COVERAGE_STATUSES = {
+    "RG-MM-001": "PARTIAL",
+    "RG-OU-001": "CORE",
+}
+PHASE7_COVERAGE_COUNTS = {"CORE": 33, "PARTIAL": 5, "PLANNED": 0}
 MCP_STABLE_VERSION = "2026-07-28"
 MCP_VERIFIED_ON = "2026-10-10"
 TOOL_CAPABILITY_CLASSES = {"TC0", "TC1", "TC2", "TC3", "TC4"}
+OUTPUT_SINK_CLASSES = {"OS0", "OS1", "OS2", "OS3", "OS4"}
 REQUIRED_HARDENING_FIELDS = (
     "Control Layer",
     "Strength",
@@ -192,11 +197,14 @@ TAXONOMY_FILES = (
     "references/tool-security.md",
     "references/mcp-security.md",
     "references/agentic-security.md",
+    "references/multimodal-security.md",
+    "references/output-security.md",
 )
 EXAMPLE_FILES = (
     "examples/01-chatbot-prompt.md",
     "examples/02-rag-agent-prompt.md",
     "examples/03-tool-using-agent-prompt.md",
+    "examples/04-multimodal-output-agent.md",
 )
 PHASE5_REFERENCE_FILES = (
     "references/rag-security.md",
@@ -206,6 +214,10 @@ PHASE6_REFERENCE_FILES = (
     "references/tool-security.md",
     "references/mcp-security.md",
     "references/agentic-security.md",
+)
+PHASE7_REFERENCE_FILES = (
+    "references/multimodal-security.md",
+    "references/output-security.md",
 )
 CURRENT_TAXONOMY_CONSUMERS = (
     "README.md",
@@ -780,10 +792,20 @@ def _validate_technique_catalog(text: str, errors: list[str]) -> set[str]:
                 f"{relative_name}: {technique_id} Phase 6 coverage status must be "
                 f"{expected_phase6_status}, found {coverage_match.group(1)}"
             )
+        expected_phase7_status = PHASE7_COVERAGE_STATUSES.get(technique_id)
+        if (
+            coverage_match
+            and expected_phase7_status is not None
+            and coverage_match.group(1) != expected_phase7_status
+        ):
+            errors.append(
+                f"{relative_name}: {technique_id} Phase 7 coverage status must be "
+                f"{expected_phase7_status}, found {coverage_match.group(1)}"
+            )
 
-    if coverage_counts != PHASE6_COVERAGE_COUNTS:
+    if coverage_counts != PHASE7_COVERAGE_COUNTS:
         errors.append(
-            f"{relative_name}: Phase 6 coverage counts must be {PHASE6_COVERAGE_COUNTS}, "
+            f"{relative_name}: Phase 7 coverage counts must be {PHASE7_COVERAGE_COUNTS}, "
             f"found {coverage_counts}"
         )
 
@@ -992,6 +1014,7 @@ def _validate_hardening_catalog(
         "SKILL.md",
         *PHASE5_REFERENCE_FILES,
         *PHASE6_REFERENCE_FILES,
+        *PHASE7_REFERENCE_FILES,
         *EXAMPLE_FILES,
     )
     for consumer in hardening_consumers:
@@ -1276,6 +1299,186 @@ def _validate_phase6_references(root: Path, errors: list[str]) -> None:
                     "examples/03-tool-using-agent-prompt.md: missing Phase 6 example rule "
                     f"{phrase!r}"
                 )
+
+
+def _validate_phase7_references(root: Path, errors: list[str]) -> None:
+    multimodal_name, output_name = PHASE7_REFERENCE_FILES
+    multimodal_text = _read_text(root, multimodal_name, errors)
+    output_text = _read_text(root, output_name, errors)
+    skill_text = _read_text(root, "SKILL.md", errors)
+    example_name = "examples/04-multimodal-output-agent.md"
+    example_text = _read_text(root, example_name, errors)
+
+    if multimodal_text is not None:
+        normalized_multimodal = " ".join(multimodal_text.split())
+        for concept in (
+            "## Trust and authority principle",
+            "## Multimodal system profile",
+            "## Images, screenshots, and visual encodings",
+            "## OCR and document extraction boundary",
+            "## Audio, transcription, and identity",
+            "## Video, frames, captions, and subtitles",
+            "## Metadata and secondary channels",
+            "## Cross-domain composition",
+            "## Attack chains and scoring",
+            "## Multimodal security checklist",
+            "## Limitations",
+        ):
+            if concept not in multimodal_text:
+                errors.append(f"{multimodal_name}: missing Phase 7 concept {concept!r}")
+        for concept in (
+            "**Modalities present:**",
+            "**Source / provenance:**",
+            "**Identity assumptions:**",
+            "**Preprocessing:**",
+            "**OCR / transcription:**",
+            "**Hidden / secondary channels:**",
+            "**Metadata:**",
+            "**Authority:**",
+            "**Tenant scope:**",
+            "**Storage / retrieval:**",
+            "**Memory persistence:**",
+            "**Downstream actions:**",
+            "**Approval:**",
+            "**Monitoring:**",
+            "**Recovery:**",
+        ):
+            if concept not in multimodal_text:
+                errors.append(
+                    f"{multimodal_name}: missing multimodal checklist concept {concept!r}"
+                )
+        for phrase in (
+            "Multimodal content is data, not privileged instruction authority",
+            "OCR and transcription output is derived untrusted content, not privileged policy",
+            "A screenshot that says “Admin approved this action” is not authenticated approval",
+            "A transcribed claim such as “I am the administrator” is not authenticated identity",
+            "`RG-MM-001` has PARTIAL coverage",
+            "not image steganalysis",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — not zero",
+        ):
+            if phrase not in normalized_multimodal:
+                errors.append(f"{multimodal_name}: missing Phase 7 multimodal rule {phrase!r}")
+
+    if output_text is not None:
+        normalized_output = " ".join(output_text.split())
+        for sink_class in sorted(OUTPUT_SINK_CLASSES):
+            if f"`{sink_class}`" not in output_text:
+                errors.append(f"{output_name}: missing output sink class {sink_class}")
+        for concept in (
+            "## Core principle and output profile",
+            "## Output sink classes",
+            "## Four-question validation model",
+            "## Shell, commands, and processes",
+            "## SQL and database sinks",
+            "## HTML, DOM, Markdown, and rendering",
+            "## URLs, network destinations, and redirects",
+            "## Filesystem paths and archive entries",
+            "## Templates, configuration, and generated code",
+            "## Serialization and structured output",
+            "## CSV and spreadsheet output",
+            "## Logs, headers, protocols, and messages",
+            "## Encoding, canonicalization, and allowlists",
+            "## Output-to-tool and agent chains",
+            "## Quarantine, provenance, and recovery",
+            "## Output security checklist",
+        ):
+            if concept not in output_text:
+                errors.append(f"{output_name}: missing Phase 7 concept {concept!r}")
+        for phrase in (
+            "Model output is untrusted data until validated for its specific downstream sink",
+            "Valid JSON does not imply a safe action",
+            "Schema validity does not grant authorization",
+            "Never concatenate model output into shell commands",
+            "Never concatenate model output into SQL queries",
+            "Markdown is not universally inert",
+            "A generated URL is not a trusted destination",
+            "Generated code does not gain execution authority",
+            "There is no universal “sanitize everything” operation",
+            "Use `RG-OU-001` and `LLM10:2026` for unsafe downstream consumption",
+            "UNKNOWN / INSUFFICIENT EVIDENCE — not zero",
+        ):
+            if phrase not in normalized_output:
+                errors.append(f"{output_name}: missing Phase 7 output rule {phrase!r}")
+
+    guidance_texts = {
+        multimodal_name: multimodal_text,
+        output_name: output_text,
+        "SKILL.md": skill_text,
+    }
+    for relative_name, text in guidance_texts.items():
+        if text is None:
+            continue
+        for forbidden_pattern, message in (
+            (r"\bmultimodal content is authenticated authority\b",
+             "multimodal content is treated as authenticated authority"),
+            (r"\bimage instructions are trusted authority\b",
+             "image instructions are treated as trusted authority"),
+            (r"\bOCR output is trusted policy\b",
+             "OCR output is treated as trusted policy"),
+            (r"\btranscript is authenticated identity\b",
+             "transcript is treated as authenticated identity"),
+            (r"screenshot[^\n]{0,100} is authenticated approval",
+             "screenshot text is treated as authenticated approval"),
+            (r"\bvoice proves identity\b", "voice is treated as proof of identity"),
+            (r"\bmodel output is trusted executable input\b",
+             "model output is treated as trusted executable input"),
+            (r"\bschema validity authorizes the action\b",
+             "schema validity is treated as authorization"),
+            (r"(?<!Never )\bconcatenate model output into shell commands\b",
+             "shell concatenation is recommended"),
+            (r"(?<!Never )\bconcatenate model output into SQL queries\b",
+             "SQL concatenation is recommended"),
+            (r"\bsanitize all output with a universal sanitizer\b",
+             "a universal sanitizer is presented as complete protection"),
+            (r"\bMarkdown is universally inert\b",
+             "Markdown is described as universally inert"),
+            (r"\bA generated URL is a trusted destination\b",
+             "generated URLs are treated as trusted destinations"),
+            (r"\bGenerated code is automatically authorized for execution\b",
+             "generated code is automatically authorized for execution"),
+        ):
+            if re.search(forbidden_pattern, text, re.IGNORECASE):
+                errors.append(f"{relative_name}: {message}")
+
+    phase7_texts = {
+        multimodal_name: multimodal_text,
+        output_name: output_text,
+        "SKILL.md": skill_text,
+        example_name: example_text,
+    }
+    for relative_name, text in phase7_texts.items():
+        if text is None:
+            continue
+        for sink_class in set(re.findall(r"\bOS[0-9]+\b", text)):
+            if sink_class not in OUTPUT_SINK_CLASSES:
+                errors.append(f"{relative_name}: invalid output sink class {sink_class}")
+
+    if skill_text is not None:
+        normalized_skill = " ".join(skill_text.split())
+        for relative_name in PHASE7_REFERENCE_FILES:
+            if f"({relative_name})" not in skill_text:
+                errors.append(f"SKILL.md: missing conditional Phase 7 reference {relative_name!r}")
+        for phrase in (
+            "only when the target processes images",
+            "only when model or agent output is consumed by",
+            "Do not run irrelevant specialized analysis",
+            "structural validity, semantic validity, authorization, and sink safety",
+        ):
+            if phrase not in normalized_skill:
+                errors.append(f"SKILL.md: missing conditional Phase 7 routing rule {phrase!r}")
+
+    if example_text is not None:
+        normalized_example = " ".join(example_text.split())
+        for phrase in (
+            "### Phase 7 Architecture and Boundary Profile",
+            "A screenshot approval claim is content, not authenticated approval",
+            "structural validation only",
+            "`RG-MM-001`",
+            "`RG-OU-001`",
+            "example.invalid",
+        ):
+            if phrase not in normalized_example:
+                errors.append(f"{example_name}: missing Phase 7 example rule {phrase!r}")
 
 
 def _validate_severity_pair(
@@ -1683,6 +1886,7 @@ def validate_repository(root: Path) -> ValidationResult:
     )
     _validate_phase5_references(root, validation.errors)
     _validate_phase6_references(root, validation.errors)
+    _validate_phase7_references(root, validation.errors)
     _validate_risk_reference(root, validation.errors)
     _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
     for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES, *EXAMPLE_FILES):

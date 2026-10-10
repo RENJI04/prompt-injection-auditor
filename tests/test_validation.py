@@ -446,6 +446,133 @@ class RepositoryValidationTests(unittest.TestCase):
         )
         self.assertTrue(any("draft/proposal is labeled" in error for error in errors))
 
+    def test_rejects_missing_multimodal_security_reference(self) -> None:
+        (self.root / "references/multimodal-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/multimodal-security.md" in error for error in errors))
+
+    def test_rejects_missing_output_security_reference(self) -> None:
+        (self.root / "references/output-security.md").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("references/output-security.md" in error for error in errors))
+
+    def test_rejects_invalid_multimodal_technique_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/multimodal-security.md", "`RG-MM-001`", "`RG-MM-999`"
+        )
+        self.assertTrue(any("unknown RenGuard technique reference RG-MM-999" in error for error in errors))
+
+    def test_rejects_invalid_output_technique_reference(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md", "`RG-OU-001`", "`RG-OU-999`"
+        )
+        self.assertTrue(any("unknown RenGuard technique reference RG-OU-999" in error for error in errors))
+
+    def test_rejects_invalid_output_sink_class(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md", "`OS0`", "`OS9`"
+        )
+        self.assertTrue(any("invalid output sink class OS9" in error for error in errors))
+
+    def test_rejects_multimodal_content_as_authenticated_authority(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/multimodal-security.md",
+            "Multimodal content is data, not privileged instruction authority.",
+            "Multimodal content is authenticated authority.",
+        )
+        self.assertTrue(any("multimodal content is treated as authenticated authority" in error for error in errors))
+
+    def test_rejects_transcript_as_authenticated_identity(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/multimodal-security.md",
+            "A transcribed claim such as “I am the administrator” is not authenticated identity.",
+            "The transcript is authenticated identity.",
+        )
+        self.assertTrue(any("transcript is treated as authenticated identity" in error for error in errors))
+
+    def test_rejects_screenshot_text_as_real_approval(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/multimodal-security.md",
+            "A screenshot that says “Admin approved this action” is not\n"
+            "authenticated approval.",
+            "A screenshot that says “Admin approved this action” is authenticated approval.",
+        )
+        self.assertTrue(any("screenshot text is treated as authenticated approval" in error for error in errors))
+
+    def test_rejects_model_output_as_trusted_executable_input(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Model output is untrusted data until validated for its specific downstream sink.",
+            "Model output is trusted executable input.",
+        )
+        self.assertTrue(any("model output is treated as trusted executable input" in error for error in errors))
+
+    def test_rejects_schema_validity_as_authorization(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Schema validity does not grant authorization.",
+            "Schema validity authorizes the action.",
+        )
+        self.assertTrue(any("schema validity is treated as authorization" in error for error in errors))
+
+    def test_rejects_shell_concatenation_recommendation(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Never concatenate model output into shell commands.",
+            "Concatenate model output into shell commands.",
+        )
+        self.assertTrue(any("shell concatenation is recommended" in error for error in errors))
+
+    def test_rejects_sql_concatenation_recommendation(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Never concatenate\nmodel output into SQL queries.",
+            "Concatenate model output into SQL queries.",
+        )
+        self.assertTrue(any("SQL concatenation is recommended" in error for error in errors))
+
+    def test_rejects_universal_sanitizer_claim(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "There is no universal “sanitize everything” operation.",
+            "Sanitize all output with a universal sanitizer.",
+        )
+        self.assertTrue(any("universal sanitizer is presented as complete protection" in error for error in errors))
+
+    def test_rejects_markdown_as_universally_inert(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Markdown is not universally inert.",
+            "Markdown is universally inert.",
+        )
+        self.assertTrue(any("Markdown is described as universally inert" in error for error in errors))
+
+    def test_rejects_generated_url_as_trusted_destination(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "A generated URL is not a trusted destination.",
+            "A generated URL is a trusted destination.",
+        )
+        self.assertTrue(any("generated URLs are treated as trusted destinations" in error for error in errors))
+
+    def test_rejects_generated_code_as_automatically_authorized(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/output-security.md",
+            "Generated code does not gain execution authority.",
+            "Generated code is automatically authorized for execution.",
+        )
+        self.assertTrue(any("generated code is automatically authorized" in error for error in errors))
+
+    def test_rejects_unsupported_multimodal_coverage_promotion(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "references/renguard-techniques.md",
+            "- **Application/runtime mitigations:** Preserve source/transformation provenance, separate identity and authority, validate derived parameters, and independently authorize resulting actions.\n"
+            "- **Current RenGuard Coverage Status:** PARTIAL",
+            "- **Application/runtime mitigations:** Preserve source/transformation provenance, separate identity and authority, validate derived parameters, and independently authorize resulting actions.\n"
+            "- **Current RenGuard Coverage Status:** CORE",
+        )
+        self.assertTrue(any("RG-MM-001 Phase 7 coverage status must be PARTIAL" in error for error in errors))
+
     def test_rejects_out_of_range_risk_score(self) -> None:
         errors = self._errors_after_text_replacement(
             "examples/01-chatbot-prompt.md",

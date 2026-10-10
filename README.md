@@ -45,6 +45,14 @@ schema, persistence/TTL, cross-session influence, cross-user/tenant isolation,
 shared-agent state, conflict policy, and rollback. These modules activate only when the
 corresponding subsystem is evidenced; they do not invent RAG or memory findings.
 
+Phase 7 adds conditional multimodal and downstream-output analysis. Multimodal review
+covers image/screenshot authority, OCR and transcription boundaries, audio/video-derived
+instructions, captions, document channels, metadata, provenance, identity assumptions,
+and media-to-tool chains. Output review covers structural versus semantic validation,
+authorization, sink-specific safety, and command, SQL, HTML/DOM, Markdown, URL, path,
+template, code, serialization, JSON, spreadsheet, log/header, and outbound-message
+consumers. Output sink classes `OS0`–`OS4` describe architecture and do not set severity.
+
 RenGuard performs evidence-bounded architecture, configuration, prompt, and supplied
 artifact review. It does **not** automatically connect to arbitrary MCP servers, execute
 their tools, penetrate remote infrastructure, validate a live OAuth/IAM backend, or
@@ -132,15 +140,15 @@ RenGuard uses three layers:
 | Retrieval / Vector / RAG | `RG-RA` | 3 | CORE and PARTIAL |
 | Supply Chain | `RG-SC` | 1 | CORE |
 | Execution / Code | `RG-EX` | 1 | CORE |
-| Output Handling | `RG-OU` | 1 | PARTIAL |
+| Output Handling | `RG-OU` | 1 | CORE |
 | Resource / Consumption | `RG-RC` | 1 | CORE |
 | Misinformation / Grounding | `RG-MI` | 1 | PARTIAL |
-| Multimodal | `RG-MM` | 1 | PLANNED |
+| Multimodal | `RG-MM` | 1 | PARTIAL |
 
 See the [taxonomy methodology and v1→v2 crosswalk](references/vulnerability-taxonomy.md)
 and the [canonical technique catalog](references/renguard-techniques.md). `CORE`,
 `PARTIAL`, and `PLANNED` describe available audit guidance, not benchmark percentages.
-The current catalog contains 32 CORE, 5 PARTIAL, and 1 PLANNED technique.
+The current catalog contains 33 CORE, 5 PARTIAL, and 0 PLANNED techniques.
 
 ## How to Use the Skill
 
@@ -202,7 +210,9 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   ├── mcp-security.md                # Version-aware MCP specialized audit domain
 │   ├── agentic-security.md            # Agentic/multi-agent specialized audit domain
 │   ├── rag-security.md               # Specialized RAG/retrieval audit domain
-│   └── memory-security.md            # Specialized persistent-memory audit domain
+│   ├── memory-security.md            # Specialized persistent-memory audit domain
+│   ├── multimodal-security.md        # Media/OCR/transcription specialized audit domain
+│   └── output-security.md            # Downstream output/sink specialized audit domain
 ├── examples/                         # Worked audit examples
 ├── evals/
 │   ├── evals.json                    # Current RenGuard v2-alpha eval definitions
@@ -251,6 +261,10 @@ The canonical historical data and corrected notes are in
 `prompt-injection-auditor` name and Claude model identifiers remain in its metadata to
 preserve provenance.
 
+The historical 40/41 result does not measure Phase 7 multimodal security, image/audio/
+video injection, output-sink handling, command/SQL/HTML safety, or any current Phase 7
+specialization. No live model benchmark was run for this phase.
+
 ## Repository Validation
 
 The eval definitions, taxonomies, and historical results are declarative data. The
@@ -275,23 +289,26 @@ later phase.
 
 ## What RenGuard Does Not Yet Do
 
-Phase 5 implements classification, formal audit reasoning, deterministic risk
-assessment, defense-in-depth remediation, and specialized RAG/memory audit logic.
-This does not mean RenGuard performs live vector-database scanning, empirical embedding
-geometry analysis, memory-backend inspection, or backend penetration testing. It audits
-the architecture and evidence supplied by the user.
+RenGuard provides architecture- and evidence-aware audit guidance; specialized references
+do not turn it into a live scanner or penetration-testing service. It does not
+automatically perform image steganalysis, hidden-pixel or ultrasonic detection, deepfake
+detection, biometric verification, OCR accuracy certification, malware analysis, browser
+exploitation, live sink exploitation, full static source-code analysis, vector-database
+scanning, empirical embedding geometry analysis, or backend inspection. Those claims
+require relevant artifacts, tools, environments, and separately authorized testing.
 
-RenGuard does not yet implement dedicated MCP, multimodal, output-security,
-or supply-chain scanners; provider/framework profiles; SARIF;
-large eval expansion; mutation testing; holdout suites; live multi-model execution; or
-statistical confidence intervals. Future work is described as planned work, not current
-functionality.
+RenGuard also does not yet implement provider/framework profiles, SARIF, the Phase 8
+advanced eval suite, mutation or hidden-holdout suites, a live model runner, cross-model
+benchmarks, or statistical confidence intervals. It does not claim that all multimodal
+attacks are detected, that valid JSON/schema is safe or authorized, that Markdown is
+inert, that generated URLs or code are trusted, or that one sanitizer protects every
+sink. Current analysis is bounded by supplied evidence and host capabilities.
 
-The current prompt-level skill also does not directly test application code, model
-weights, network controls, tool implementations, UI output encoding, or stochastic
-attack success rates. Those controls require system-level testing beyond prompt review.
-Phase 3 scoring, Phase 4 hardening, and Phase 5 RAG/memory behavior have not been measured
-by a new live model benchmark.
+The skill does not directly prove application code, model weights, network controls,
+tool implementations, output encoding, authorization, sandboxing, or stochastic attack
+success rates. Those controls require safe system-level verification. Phase 3 scoring,
+Phase 4 hardening, and Phase 5–7 specialized behavior have not been measured by a new
+live model benchmark.
 
 ## Contributing
 

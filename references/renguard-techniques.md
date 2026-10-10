@@ -636,8 +636,8 @@ apply only to agentic targets.
 
 - **Category Family:** Output Handling (`RG-OU`)
 - **Definition:** A downstream component interprets untrusted model output as executable code, markup, query, or command.
-- **Typical attack sources:** Generated HTML, SQL, shell, templates, code, URLs, control messages.
-- **Detection signals:** Raw output reaches interpreters or privileged sinks without validation or encoding.
+- **Typical attack sources:** Generated HTML, Markdown, SQL, shell, templates, code, URLs, paths, serialized data, spreadsheets, headers, or control messages.
+- **Detection signals:** Raw output reaches interpreters, active renderers, network/filesystem boundaries, or privileged sinks without sink-specific validation, authorization, or encoding.
 - **Preconditions:** The application treats probabilistic model output as trusted executable material.
 - **Security impact:** Injection, code execution, data corruption, client compromise, or unauthorized action.
 - **Example attack pattern:** Generated HTML containing attacker-controlled script is rendered unsafely.
@@ -647,8 +647,8 @@ apply only to agentic targets.
 - **Commonly confused with:** `RG-PI-005`, which concerns input structure changing model interpretation.
 - **Boundary / non-example:** Displaying escaped output as inert text is not unsafe execution.
 - **Prompt-level mitigations:** Request constrained output, but do not rely on prompt compliance for safety.
-- **Application/runtime mitigations:** Encode, validate, parameterize, sandbox, and separate data from code.
-- **Current RenGuard Coverage Status:** PARTIAL
+- **Application/runtime mitigations:** Validate structure and semantics, authorize independently, encode for the exact context, parameterize, canonicalize, quarantine, sandbox, and separate data from code.
+- **Current RenGuard Coverage Status:** CORE
 
 ## RG-RC-001 — Unbounded Agent or Tool Consumption
 
@@ -691,7 +691,7 @@ apply only to agentic targets.
 - **Category Family:** Multimodal (`RG-MM`)
 - **Definition:** Instructions embedded in images, audio, video, or mixed media manipulate model behavior.
 - **Typical attack sources:** Image text, visual overlays, audio speech, metadata, cross-modal content.
-- **Detection signals:** Media contains directives to the model that conflict with the authorized task.
+- **Detection signals:** Visible or derived media content contains conflicting directives or security-sensitive parameter changes.
 - **Preconditions:** Multimodal content is converted into instruction-capable context.
 - **Security impact:** Goal hijack, hidden actions, disclosure, or filter evasion.
 - **Example attack pattern:** Text concealed in an image directs an agent to upload private data.
@@ -701,5 +701,5 @@ apply only to agentic targets.
 - **Commonly confused with:** `RG-PI-007` character-level concealment in text.
 - **Boundary / non-example:** Benign media content relevant to the user's task is not injection.
 - **Prompt-level mitigations:** Treat extracted media instructions as untrusted content.
-- **Application/runtime mitigations:** Inspect modalities separately, preserve provenance, and gate resulting actions.
-- **Current RenGuard Coverage Status:** PLANNED
+- **Application/runtime mitigations:** Preserve source/transformation provenance, separate identity and authority, validate derived parameters, and independently authorize resulting actions.
+- **Current RenGuard Coverage Status:** PARTIAL

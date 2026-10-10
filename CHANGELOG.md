@@ -5,6 +5,39 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 7 multimodal and output security engine
+
+- Added conditional specialized audit domains for images/screenshots, OCR, audio/
+  transcription, video/captions, mixed-modality documents, metadata, and model output
+  consumed by automated downstream sinks.
+- Added canonical `references/multimodal-security.md` guidance for modality/source
+  profiling, provenance through transformations, content-versus-authority separation,
+  appearance/voice identity claims, media-to-tool chains, RAG/memory/tool composition,
+  safe verification, and explicit forensic limitations.
+- Added canonical `references/output-security.md` guidance and `OS0`–`OS4` sink classes
+  for shell, SQL, HTML/DOM, Markdown, URL, path, template, generated code,
+  serialization, JSON/XML, spreadsheet, log/header, and outbound-message boundaries.
+  Sink class remains distinct from and does not determine the Phase 3 score.
+- Formalized four independent output questions: structural validity, semantic validity,
+  authorization, and exact-sink safety, with destination-specific encoding,
+  canonicalization, quarantine, provenance, and recovery guidance.
+- Integrated multimodal-to-tool, output-to-tool, and output-to-agent paths with the
+  unchanged Phase 3 attack-chain model and evidence-bounded scoring.
+- Reused the existing 27 hardening patterns, expanded `RG-HARD-P-001` and
+  `RG-HARD-OUT-001`, and added Multimodal Agent and Output-Processing Pipeline bundles;
+  no new hardening ID was necessary.
+- Promoted `RG-MM-001` from PLANNED to PARTIAL for architecture/content-aware analysis
+  that explicitly excludes dedicated forensics. Promoted `RG-OU-001` from PARTIAL to
+  CORE for comprehensive operational sink analysis. The resulting posture is 33 CORE,
+  5 PARTIAL, and 0 PLANNED techniques.
+- Added a worked multimodal field-service example with inert screenshot content, URL/
+  command sinks, a single scored attack chain, and deterministic boundary controls.
+- Extended offline validation and standard-library regression tests for Phase 7 files,
+  conditional routing, technique references, trust and identity boundaries, output sink
+  classes, unsafe consumption guidance, coverage transitions, and Phase 3 integrity.
+- Left the historical benchmark and current eval corpus unchanged; no live model,
+  forensic engine, sink exploit, or Phase 8 evaluation was run.
+
 ### Phase 6 tool, MCP, and agentic security engine
 
 - Added conditional specialized audit domains for generic AI tools/functions, MCP
