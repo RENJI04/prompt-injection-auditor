@@ -53,6 +53,13 @@ authorization, sink-specific safety, and command, SQL, HTML/DOM, Markdown, URL, 
 template, code, serialization, JSON, spreadsheet, log/header, and outbound-message
 consumers. Output sink classes `OS0`–`OS4` describe architecture and do not set severity.
 
+Phase 8 adds the separate [RenGuard v2 public evaluation suite](evals/v2/README.md):
+72 security-reasoning definitions spanning all 38 techniques, with clean and boundary
+controls, multi-turn and cross-component chains, seven-language coverage, declarative
+mutation recipes, and 12 deterministic risk fixtures. These are test definitions only.
+No model was called, no v2 result exists, and a passing corpus validator is not a model-
+security benchmark result.
+
 RenGuard performs evidence-bounded architecture, configuration, prompt, and supplied
 artifact review. It does **not** automatically connect to arbitrary MCP servers, execute
 their tools, penetrate remote infrastructure, validate a live OAuth/IAM backend, or
@@ -215,8 +222,13 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 │   └── output-security.md            # Downstream output/sink specialized audit domain
 ├── examples/                         # Worked audit examples
 ├── evals/
-│   ├── evals.json                    # Current RenGuard v2-alpha eval definitions
-│   └── files/                        # Current synthetic security test fixtures
+│   ├── evals.json                    # Legacy v2-alpha definitions; not v1 result source
+│   ├── files/                        # Legacy v2-alpha fixtures; not v1 result source
+│   └── v2/                           # Public Phase 8 definitions; no model results
+│       ├── manifest.json             # Recomputable suite counts and coverage matrix
+│       ├── *.json                    # Domain-grouped public scenarios and mutations
+│       ├── README.md                 # Scenario contract and contribution rules
+│       └── HOLDOUT_POLICY.md         # Policy only; no supposed-secret public cases
 ├── benchmarks/
 │   └── benchmark.json                # Canonical corrected historical v1 artifact
 ├── scripts/
@@ -261,9 +273,27 @@ The canonical historical data and corrected notes are in
 `prompt-injection-auditor` name and Claude model identifiers remain in its metadata to
 preserve provenance.
 
-The historical 40/41 result does not measure Phase 7 multimodal security, image/audio/
-video injection, output-sink handling, command/SQL/HTML safety, or any current Phase 7
-specialization. No live model benchmark was run for this phase.
+The historical 40/41 result does not measure the Phase 8 public suite or Phase 5–7
+specializations. The v2 suite has no model outputs or benchmark result. Future private
+holdout content must remain outside this public repository; the committed
+[holdout policy](evals/v2/HOLDOUT_POLICY.md) is not a hidden corpus.
+
+## RenGuard v2 Public Evaluation Suite
+
+The Phase 8 suite has 72 public scenarios grouped into direct authority, RAG/retrieval,
+hidden context, tools, MCP, memory, agentic, multimodal, output-sink, cross-cutting, and
+clean-control domains. It includes clean and nuanced boundary cases to resist keyword-
+only scoring, at least ten explicit multi-turn cases, at least ten ordered attack chains,
+meaningful English, Arabic, French, Chinese, Spanish, Japanese, and Russian content,
+safe mutation recipes, and exact Phase 3 score fixtures where evidence is complete.
+
+Expected results separate security detection, technique mapping, framework mapping,
+risk, confidence, remediation, redaction, and formatting. Multimodal definitions use
+normalized textual descriptors and do not prove native media perception. Output sinks
+are declarative and are never executed. The public corpus and a future private holdout
+share a contract, but actual private cases must be stored outside Git. See the
+[suite documentation](evals/v2/README.md) and
+[manifest](evals/v2/manifest.json).
 
 ## Repository Validation
 
@@ -280,8 +310,10 @@ references, result arithmetic, pass rates, recomputed micro and macro summaries,
 historical source-commit provenance, known contradictory notes, documented headline
 values, important relative links, official framework IDs/names, unique RenGuard IDs,
 valid cross-references, the risk formula and bands, scoring dimensions, finding IDs,
-confidence/exploitability labels, hardening IDs/layers/strength/status/functions, and
-worked-example score and remediation consistency.
+confidence/exploitability labels, hardening IDs/layers/strength/status/functions,
+worked-example score and remediation consistency, and the complete v2 scenario contract.
+For Phase 8 it recomputes corpus/category/kind/language counts, multi-turn and chain
+counts, exact scores, mutation references, and 38-technique coverage from source files.
 
 These commands do **not** execute prompts against a live model and do not reproduce the
 historical benchmark. A live model evaluation and benchmark runner is deferred to a
@@ -297,9 +329,9 @@ exploitation, live sink exploitation, full static source-code analysis, vector-d
 scanning, empirical embedding geometry analysis, or backend inspection. Those claims
 require relevant artifacts, tools, environments, and separately authorized testing.
 
-RenGuard also does not yet implement provider/framework profiles, SARIF, the Phase 8
-advanced eval suite, mutation or hidden-holdout suites, a live model runner, cross-model
-benchmarks, or statistical confidence intervals. It does not claim that all multimodal
+RenGuard also does not yet implement provider/framework profiles, SARIF, a live model
+runner, an in-repository private holdout, cross-model benchmarks, or statistical
+confidence intervals. It does not claim that all multimodal
 attacks are detected, that valid JSON/schema is safe or authorized, that Markdown is
 inert, that generated URLs or code are trusted, or that one sanitizer protects every
 sink. Current analysis is bounded by supplied evidence and host capabilities.
@@ -307,8 +339,8 @@ sink. Current analysis is bounded by supplied evidence and host capabilities.
 The skill does not directly prove application code, model weights, network controls,
 tool implementations, output encoding, authorization, sandboxing, or stochastic attack
 success rates. Those controls require safe system-level verification. Phase 3 scoring,
-Phase 4 hardening, and Phase 5–7 specialized behavior have not been measured by a new
-live model benchmark.
+Phase 4 hardening, and Phase 5–7 specialized behavior have not been measured by the new
+public corpus because Phase 8 performed no live model benchmark.
 
 ## Contributing
 

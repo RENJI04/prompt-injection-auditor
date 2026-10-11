@@ -10,6 +10,7 @@ import math
 import re
 import statistics
 import sys
+from collections import Counter
 from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
@@ -116,6 +117,95 @@ PHASE7_COVERAGE_STATUSES = {
     "RG-OU-001": "CORE",
 }
 PHASE7_COVERAGE_COUNTS = {"CORE": 33, "PARTIAL": 5, "PLANNED": 0}
+PHASE8_SOURCE_CHECKPOINT = "9bb240491a84dd519c931565929bd053e0ffa47d"
+V2_SUITE_NAME = "RenGuard v2 Public Evaluation Suite"
+V2_SUITE_VERSION = "0.1.0"
+V2_SCENARIO_ID_PATTERN = re.compile(r"RG-EVAL-V2-[0-9]{3}")
+V2_MUTATION_ID_PATTERN = re.compile(r"RG-MUT-[0-9]{3}")
+V2_SCENARIO_KINDS = {"ATTACK", "CLEAN", "BOUNDARY", "CHAIN"}
+V2_ASSERTION_GROUPS = {
+    "SECURITY_DETECTION",
+    "TECHNIQUE_MAPPING",
+    "FRAMEWORK_MAPPING",
+    "RISK",
+    "CONFIDENCE",
+    "REMEDIATION",
+    "REDACTION",
+    "FORMAT",
+}
+V2_RISK_MODES = {"EXACT", "BAND", "NOT_ASSERTED"}
+V2_LANGUAGE_TAGS = {"en", "ar", "fr", "zh-CN", "es", "ja", "ru"}
+V2_REQUIRED_LANGUAGES = {"en", "ar", "fr", "zh-CN", "es", "ja", "ru"}
+V2_CATEGORY_MINIMUMS = {
+    "DIRECT_AUTHORITY": 8,
+    "RAG_RETRIEVAL": 7,
+    "HIDDEN_CONTEXT": 5,
+    "TOOLS": 7,
+    "MCP": 7,
+    "MEMORY": 5,
+    "AGENTIC": 6,
+    "MULTIMODAL": 5,
+    "OUTPUT_SINKS": 7,
+    "CROSS_CUTTING": 3,
+    "CLEAN_CONTROLS": 12,
+}
+V2_SCENARIO_FILES = (
+    "direct-authority.json",
+    "rag-retrieval.json",
+    "hidden-context.json",
+    "tools.json",
+    "mcp.json",
+    "memory.json",
+    "agentic.json",
+    "multimodal.json",
+    "output-sinks.json",
+    "cross-cutting.json",
+    "clean-controls.json",
+)
+V2_REQUIRED_SCENARIO_FIELDS = {
+    "id", "title", "category", "kind", "description", "language",
+    "target_profile", "input", "expected", "tags",
+}
+V2_REQUIRED_EXPECTED_FIELDS = {
+    "must_detect", "may_detect", "must_not_detect",
+    "expected_primary_technique", "expected_secondary_techniques",
+    "expected_owasp_llm", "expected_owasp_agentic", "expected_confidence",
+    "expected_risk", "required_control_layers", "required_hardening_patterns",
+    "required_security_properties", "prohibited_claims",
+    "secret_redaction_expectation", "assertion_groups",
+}
+V2_REQUIRED_PROFILE_FIELDS = {
+    "application_type", "model_role", "rag", "memory", "tools", "mcp",
+    "agentic", "multimodal", "output_sink", "tenant_model", "authentication",
+    "authorization", "network", "human_approval", "persistent_state",
+}
+V2_FORBIDDEN_RESULT_FIELDS = {
+    "pass_rate", "accuracy", "precision", "recall", "f1", "model_score",
+    "benchmark_score", "detection_rate",
+}
+HISTORICAL_V1_FILE_SHA256 = {
+    "benchmarks/benchmark.json": "2d42a81ea51cb253d490037a5adf32804d0f181ab13ce1dc5910a28508ead36c",
+    "evals/evals.json": "f8bbac8217a1d87ff5fa59f0c3b864201697d804119094de756d9fc5b6f72e81",
+    "evals/files/clean_prompt.txt": "d31f483dd9665943538ac047d710b57876741c049cc87cd6d309625d3c6491dd",
+    "evals/files/hardened_prompt.txt": "4cec800c9a2d8f34cd561dd97774c44c40d5147f903acd520141beb3b5687fb9",
+    "evals/files/leakage_risk.txt": "15d92df78436d4ce3dca59960c6ebb9e92ed83fb0ee6c88145f3db00b4d7e4d4",
+    "evals/files/minimal_prompt.txt": "8f193c746cdb505e6d06c419fcfc6299d16070727c1557f134c7edc44ac70f03",
+    "evals/files/multi_agent_pipeline.txt": "74548eadc4a724d7e02bd5e9e8f5a84a24b2e21faaa6cbc701191ca6387b22bb",
+    "evals/files/obfuscated_injection.txt": "d12c5e7fd3d882ac76b01bf9b58e6129af668ec481c2acce3d8e7282e143a38d",
+    "evals/files/vulnerable_chatbot.txt": "781191843a05f807d9d5a786c1d00269bd316cfc1e30e3fe396d38fb9f2b9aea",
+    "evals/files/vulnerable_rag.txt": "11dd5698b137b880640dd2bf183d31bcd83d3500e42204f5adf8fc08cd0647cc",
+}
+PHASE8_PRESERVED_FILE_SHA256 = {
+    "references/risk-scoring.md": "3418cd1efd4c19989767f726d2c488e8dc0ac2675e1ef089b3ac2d381f74f7df",
+    "references/hardening-patterns.md": "44065cffd00950c86cd4b1f9552ecd0b7580b3a1c9e60ccab9938b02514356c8",
+    "references/rag-security.md": "fe387817ef7143f46afa671df300742b3fda21b3c4c43be97c2b7bbf576c9ae0",
+    "references/memory-security.md": "218b1c330e30271e83e1de497f3780da617b39959d933fe89c3f9b15baa6863f",
+    "references/tool-security.md": "aec942770dd308c2830783e66de4d9130e4032be1221d54c7200c4ef1dc165b1",
+    "references/mcp-security.md": "de550a80c12295f069cbde6747bfd394742e494b3ac4216b8a8221fa93c975ba",
+    "references/agentic-security.md": "867e63df0964bc79b3a32f0db9aee69071a2331df743dd130481f87ebdc71c99",
+    "references/multimodal-security.md": "1a3422ac65afe8dc9aa4bdf6612a248183dc04f6553e69577cb807748b29294b",
+    "references/output-security.md": "51869c1794ff1c3963a4d7d43e2a7996646781ed054be28ddd36db99985d2179",
+}
 MCP_STABLE_VERSION = "2026-07-28"
 MCP_VERIFIED_ON = "2026-10-10"
 TOOL_CAPABILITY_CLASSES = {"TC0", "TC1", "TC2", "TC3", "TC4"}
@@ -235,6 +325,7 @@ class ValidationResult:
     run_count: int = 0
     technique_count: int = 0
     hardening_pattern_count: int = 0
+    v2_metrics: dict[str, Any] = field(default_factory=dict)
 
 
 def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
@@ -1861,6 +1952,568 @@ def _validate_phase3_examples(
         _validate_example_report(root, relative_name, technique_ids, errors)
 
 
+def _validate_preserved_file_hashes(root: Path, errors: list[str]) -> None:
+    for relative_name, expected_digest in {
+        **HISTORICAL_V1_FILE_SHA256,
+        **PHASE8_PRESERVED_FILE_SHA256,
+    }.items():
+        path = root / relative_name
+        try:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError as exc:
+            errors.append(f"{relative_name}: cannot verify preserved file: {exc}")
+            continue
+        if digest != expected_digest:
+            if relative_name in HISTORICAL_V1_FILE_SHA256:
+                errors.append(
+                    f"{relative_name}: provenance-preserved benchmark/eval path changed "
+                    "from the Phase 7 checkpoint"
+                )
+            else:
+                errors.append(
+                    f"{relative_name}: Phase 3–7 security specification changed "
+                    "during Phase 8"
+                )
+
+
+def _find_forbidden_result_fields(value: Any, path: str, errors: list[str]) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            normalized_key = str(key).lower().replace("-", "_").replace(" ", "_")
+            if normalized_key in V2_FORBIDDEN_RESULT_FIELDS:
+                errors.append(f"{path}: forbidden model-result field {key!r}")
+            _find_forbidden_result_fields(child, f"{path}.{key}", errors)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _find_forbidden_result_fields(child, f"{path}[{index}]", errors)
+
+
+def _validate_string_list(
+    value: Any,
+    label: str,
+    errors: list[str],
+) -> list[str]:
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        errors.append(f"{label}: must be a list of strings")
+        return []
+    if len(value) != len(set(value)):
+        errors.append(f"{label}: must not contain duplicates")
+    return value
+
+
+def _validate_v2_mutations(root: Path, errors: list[str]) -> set[str]:
+    relative_name = "evals/v2/mutations.json"
+    data = _load_json(root / relative_name, "v2 mutation recipes", errors)
+    if not isinstance(data, dict) or not isinstance(data.get("mutation_recipes"), list):
+        errors.append(f"{relative_name}: mutation_recipes must be a list")
+        return set()
+
+    mutation_ids: set[str] = set()
+    required = {
+        "id", "name", "category", "applicable_to", "description",
+        "preserves_semantics", "safety_notes",
+    }
+    for index, recipe in enumerate(data["mutation_recipes"]):
+        label = f"{relative_name} mutation[{index}]"
+        if not isinstance(recipe, dict):
+            errors.append(f"{label}: expected an object")
+            continue
+        missing = required - set(recipe)
+        if missing:
+            errors.append(f"{label}: missing required field(s) {sorted(missing)!r}")
+        mutation_id = recipe.get("id")
+        if not isinstance(mutation_id, str) or not V2_MUTATION_ID_PATTERN.fullmatch(mutation_id):
+            errors.append(f"{label}: malformed mutation ID {mutation_id!r}")
+        elif mutation_id in mutation_ids:
+            errors.append(f"{label}: duplicate mutation ID {mutation_id!r}")
+        else:
+            mutation_ids.add(mutation_id)
+        applicable = _validate_string_list(recipe.get("applicable_to"), f"{label}.applicable_to", errors)
+        for kind in applicable:
+            if kind not in V2_SCENARIO_KINDS:
+                errors.append(f"{label}: invalid applicable scenario kind {kind!r}")
+        if recipe.get("preserves_semantics") is not True:
+            errors.append(f"{label}: preserves_semantics must be true")
+    return mutation_ids
+
+
+def _validate_v2_risk(risk: Any, label: str, errors: list[str]) -> tuple[str | None, str | None]:
+    if not isinstance(risk, dict):
+        errors.append(f"{label}: expected_risk must be an object")
+        return None, None
+    mode = risk.get("mode")
+    if not isinstance(mode, str) or mode not in V2_RISK_MODES:
+        errors.append(f"{label}: invalid risk mode {mode!r}")
+        return None, None
+    if mode == "NOT_ASSERTED":
+        if any(key in risk for key in ("dimensions", "score", "severity")):
+            errors.append(f"{label}: NOT_ASSERTED risk must not fabricate score fields")
+        return mode, None
+
+    severity = risk.get("severity")
+    if not isinstance(severity, str) or severity not in SEVERITY_BANDS:
+        errors.append(f"{label}: invalid expected severity {severity!r}")
+    if mode == "BAND":
+        if "dimensions" in risk or "score" in risk:
+            errors.append(f"{label}: BAND risk must not include an exact vector or score")
+        return mode, severity if isinstance(severity, str) else None
+
+    dimensions = risk.get("dimensions")
+    if not isinstance(dimensions, dict) or set(dimensions) != set(RISK_DIMENSIONS):
+        found = sorted(dimensions) if isinstance(dimensions, dict) else dimensions
+        errors.append(
+            f"{label}: EXACT risk dimensions must contain all 12 canonical symbols; found {found!r}"
+        )
+        return mode, severity if isinstance(severity, str) else None
+    if any(
+        not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 4
+        for value in dimensions.values()
+    ):
+        errors.append(f"{label}: exact risk dimensions must be integers from 0 through 4")
+        return mode, severity if isinstance(severity, str) else None
+    evidence_basis = risk.get("evidence_basis")
+    if (
+        not isinstance(evidence_basis, dict)
+        or set(evidence_basis) != set(RISK_DIMENSIONS)
+        or not all(isinstance(value, str) and value.strip() for value in evidence_basis.values())
+    ):
+        errors.append(
+            f"{label}: EXACT risk requires a non-empty evidence basis for all 12 dimensions"
+        )
+    expected_score = calculate_risk_score(dimensions)
+    score = risk.get("score")
+    if not _is_number(score) or float(score) != expected_score:
+        errors.append(
+            f"{label}: exact risk score mismatch; stored {score!r}, recomputed {expected_score:.1f}"
+        )
+    if (
+        isinstance(severity, str)
+        and severity in SEVERITY_BANDS
+        and severity_for_score(expected_score) != severity
+    ):
+        errors.append(
+            f"{label}: exact risk score / severity mismatch; {expected_score:.1f} requires "
+            f"{severity_for_score(expected_score)}"
+        )
+    return mode, severity if isinstance(severity, str) else None
+
+
+def _validate_v2_suite(
+    root: Path,
+    technique_ids: set[str],
+    errors: list[str],
+) -> dict[str, Any]:
+    suite_root = root / "evals" / "v2"
+    for relative_name in ("README.md", "HOLDOUT_POLICY.md", "manifest.json", "mutations.json"):
+        if not (suite_root / relative_name).is_file():
+            errors.append(f"evals/v2/{relative_name}: required Phase 8 file is missing")
+
+    mutation_ids = _validate_v2_mutations(root, errors)
+    hardening_text = _read_text(root, "references/hardening-patterns.md", errors) or ""
+    hardening_ids = set(HARDENING_ID_PATTERN.findall(hardening_text))
+    scenarios: list[dict[str, Any]] = []
+    scenario_ids: set[str] = set()
+
+    for filename in V2_SCENARIO_FILES:
+        relative_name = f"evals/v2/{filename}"
+        data = _load_json(suite_root / filename, f"v2 scenario group {filename}", errors)
+        if not isinstance(data, dict) or not isinstance(data.get("scenarios"), list):
+            errors.append(f"{relative_name}: scenarios must be a list")
+            continue
+        file_category = data.get("category")
+        if not isinstance(file_category, str) or file_category not in V2_CATEGORY_MINIMUMS:
+            errors.append(f"{relative_name}: invalid category {file_category!r}")
+        _find_forbidden_result_fields(data, relative_name, errors)
+
+        for index, scenario in enumerate(data["scenarios"]):
+            label = f"{relative_name} scenario[{index}]"
+            if not isinstance(scenario, dict):
+                errors.append(f"{label}: expected an object")
+                continue
+            scenarios.append(scenario)
+            missing = V2_REQUIRED_SCENARIO_FIELDS - set(scenario)
+            if missing:
+                errors.append(f"{label}: missing required field(s) {sorted(missing)!r}")
+
+            scenario_id = scenario.get("id")
+            if not isinstance(scenario_id, str) or not V2_SCENARIO_ID_PATTERN.fullmatch(scenario_id):
+                errors.append(f"{label}: malformed v2 eval ID {scenario_id!r}")
+            elif scenario_id in scenario_ids:
+                errors.append(f"{label}: duplicate v2 eval ID {scenario_id!r}")
+            else:
+                scenario_ids.add(scenario_id)
+
+            category = scenario.get("category")
+            if (
+                category != file_category
+                or not isinstance(category, str)
+                or category not in V2_CATEGORY_MINIMUMS
+            ):
+                errors.append(
+                    f"{label}: scenario category {category!r} must match file category {file_category!r}"
+                )
+            kind = scenario.get("kind")
+            if not isinstance(kind, str) or kind not in V2_SCENARIO_KINDS:
+                errors.append(f"{label}: invalid scenario kind {kind!r}")
+            if scenario.get("public_visibility") != "PUBLIC":
+                errors.append(f"{label}: public scenario falsely labeled private/hidden holdout")
+
+            language = scenario.get("language")
+            languages = language if isinstance(language, list) else [language]
+            if (
+                not languages
+                or any(not isinstance(tag, str) or tag not in V2_LANGUAGE_TAGS for tag in languages)
+                or len(languages) != len(set(languages))
+            ):
+                errors.append(f"{label}: invalid language tag metadata {language!r}")
+
+            profile = scenario.get("target_profile")
+            if not isinstance(profile, dict):
+                errors.append(f"{label}: target_profile must be an object")
+                profile = {}
+            profile_missing = V2_REQUIRED_PROFILE_FIELDS - set(profile)
+            if profile_missing:
+                errors.append(
+                    f"{label}: target_profile missing field(s) {sorted(profile_missing)!r}"
+                )
+            for field_name in ("rag", "memory", "tools", "mcp", "agentic", "multimodal", "persistent_state"):
+                if field_name in profile and profile[field_name] not in (True, False, "UNKNOWN"):
+                    errors.append(f"{label}: target_profile.{field_name} must be true, false, or UNKNOWN")
+            if "output_sink" in profile and not (
+                profile["output_sink"] in (True, False, "UNKNOWN")
+                or isinstance(profile["output_sink"], str)
+            ):
+                errors.append(f"{label}: target_profile.output_sink has invalid value")
+            if scenario.get("agentic_applicable") not in (True, False):
+                errors.append(f"{label}: agentic_applicable must be boolean")
+            elif profile.get("agentic") in (True, False) and scenario["agentic_applicable"] != profile["agentic"]:
+                errors.append(f"{label}: agentic_applicable conflicts with target_profile.agentic")
+
+            if not isinstance(scenario.get("input"), dict):
+                errors.append(f"{label}: input must be a structured object")
+            tags = _validate_string_list(scenario.get("tags"), f"{label}.tags", errors)
+            if not tags:
+                errors.append(f"{label}: tags must not be empty")
+            required_references = _validate_string_list(
+                scenario.get("required_references", []), f"{label}.required_references", errors
+            )
+            for reference in required_references:
+                if not (root / reference).is_file():
+                    errors.append(f"{label}: unknown required reference {reference!r}")
+
+            expected = scenario.get("expected")
+            if not isinstance(expected, dict):
+                errors.append(f"{label}: expected must be an object")
+                continue
+            expected_missing = V2_REQUIRED_EXPECTED_FIELDS - set(expected)
+            if expected_missing:
+                errors.append(f"{label}: expected missing field(s) {sorted(expected_missing)!r}")
+
+            technique_lists: dict[str, list[str]] = {}
+            for field_name in ("must_detect", "may_detect", "must_not_detect"):
+                values = _validate_string_list(
+                    expected.get(field_name), f"{label}.expected.{field_name}", errors
+                )
+                technique_lists[field_name] = values
+                for technique_id in values:
+                    if technique_id not in technique_ids:
+                        errors.append(f"{label}: unknown RenGuard technique ID {technique_id!r}")
+            if kind == "CLEAN" and technique_lists["must_detect"]:
+                errors.append(f"{label}: CLEAN case must not require vulnerability detection")
+            if kind in {"ATTACK", "CHAIN"} and not technique_lists["must_detect"]:
+                errors.append(f"{label}: {kind} case must require security detection")
+
+            primary = expected.get("expected_primary_technique")
+            if primary is not None and (
+                not isinstance(primary, str) or primary not in technique_ids
+            ):
+                errors.append(f"{label}: unknown primary RenGuard technique {primary!r}")
+            secondary = _validate_string_list(
+                expected.get("expected_secondary_techniques"),
+                f"{label}.expected.expected_secondary_techniques",
+                errors,
+            )
+            for technique_id in secondary:
+                if technique_id not in technique_ids:
+                    errors.append(f"{label}: unknown secondary RenGuard technique {technique_id!r}")
+            if technique_lists["must_detect"]:
+                if primary != technique_lists["must_detect"][0]:
+                    errors.append(f"{label}: primary technique must be the first required detection")
+                if secondary != technique_lists["must_detect"][1:]:
+                    errors.append(f"{label}: secondary techniques must match remaining detections")
+
+            llm_mappings = _validate_string_list(
+                expected.get("expected_owasp_llm"), f"{label}.expected.expected_owasp_llm", errors
+            )
+            for mapping in llm_mappings:
+                if mapping not in OWASP_LLM_2026:
+                    errors.append(f"{label}: unknown OWASP LLM 2026 mapping {mapping!r}")
+            agentic_mappings = _validate_string_list(
+                expected.get("expected_owasp_agentic"),
+                f"{label}.expected.expected_owasp_agentic",
+                errors,
+            )
+            for mapping in agentic_mappings:
+                if mapping not in OWASP_AGENTIC_2026:
+                    errors.append(f"{label}: unknown OWASP Agentic 2026 mapping {mapping!r}")
+            if agentic_mappings and scenario.get("agentic_applicable") is not True:
+                errors.append(f"{label}: Agentic mapping used for non-agentic scenario")
+
+            confidence = expected.get("expected_confidence")
+            if not isinstance(confidence, str) or confidence not in CONFIDENCE_LEVELS:
+                errors.append(f"{label}: invalid expected confidence {confidence!r}")
+            _validate_v2_risk(expected.get("expected_risk"), f"{label}.expected", errors)
+
+            control_layers = _validate_string_list(
+                expected.get("required_control_layers"),
+                f"{label}.expected.required_control_layers",
+                errors,
+            )
+            for layer in control_layers:
+                if layer not in HARDENING_CONTROL_LAYERS:
+                    errors.append(f"{label}: invalid required control layer {layer!r}")
+            pattern_ids = _validate_string_list(
+                expected.get("required_hardening_patterns"),
+                f"{label}.expected.required_hardening_patterns",
+                errors,
+            )
+            for pattern_id in pattern_ids:
+                if pattern_id not in hardening_ids:
+                    errors.append(f"{label}: unknown hardening pattern ID {pattern_id!r}")
+            assertion_groups = _validate_string_list(
+                expected.get("assertion_groups"), f"{label}.expected.assertion_groups", errors
+            )
+            for group in assertion_groups:
+                if group not in V2_ASSERTION_GROUPS:
+                    errors.append(f"{label}: invalid assertion group {group!r}")
+            security_properties = _validate_string_list(
+                expected.get("required_security_properties"),
+                f"{label}.expected.required_security_properties",
+                errors,
+            )
+            _validate_string_list(
+                expected.get("prohibited_claims"),
+                f"{label}.expected.prohibited_claims",
+                errors,
+            )
+            redaction_expectation = expected.get("secret_redaction_expectation")
+            if redaction_expectation not in (
+                "NONE", "REDACT", "REDACT_AND_ROTATE"
+            ):
+                errors.append(f"{label}: invalid secret redaction expectation")
+            elif redaction_expectation != "NONE":
+                required_redaction_properties = {
+                    "REDACT_SECRETS",
+                    "EXCLUDE_SECRET_FROM_HARDENED_REWRITE",
+                    "RECOMMEND_ROTATION_OR_REVOCATION",
+                }
+                if not required_redaction_properties.issubset(security_properties):
+                    errors.append(f"{label}: redaction case missing required secret-handling properties")
+                if "REDACTION" not in assertion_groups:
+                    errors.append(f"{label}: redaction case must include REDACTION assertion group")
+
+            referenced_mutations = _validate_string_list(
+                scenario.get("mutation_ids", []), f"{label}.mutation_ids", errors
+            )
+            for mutation_id in referenced_mutations:
+                if mutation_id not in mutation_ids:
+                    errors.append(f"{label}: unknown mutation ID {mutation_id!r}")
+            if not isinstance(scenario.get("mutation_eligible"), bool):
+                errors.append(f"{label}: mutation_eligible must be boolean")
+            elif referenced_mutations and scenario.get("mutation_eligible") is not True:
+                errors.append(f"{label}: mutation IDs require mutation_eligible=true")
+
+            if kind == "CHAIN":
+                chain = scenario.get("architecture", {}).get("ordered_attack_chain") if isinstance(scenario.get("architecture"), dict) else None
+                if not isinstance(chain, list) or len(chain) < 3 or not all(isinstance(step, str) for step in chain):
+                    errors.append(f"{label}: CHAIN case requires at least three ordered components")
+            if "turns" in scenario:
+                turns = scenario["turns"]
+                if not isinstance(turns, list) or len(turns) < 2 or not all(
+                    isinstance(turn, dict)
+                    and isinstance(turn.get("role"), str)
+                    and isinstance(turn.get("content"), str)
+                    for turn in turns
+                ):
+                    errors.append(f"{label}: turns must contain at least two role/content objects")
+            if profile.get("multimodal") is True:
+                if scenario.get("input_representation") != "normalized_multimodal_descriptor":
+                    errors.append(f"{label}: multimodal case must declare normalized descriptor input")
+                if scenario.get("native_media_required_for_full_benchmark") is not True:
+                    errors.append(f"{label}: multimodal case must disclose native-media limitation")
+
+    manifest = _load_json(suite_root / "manifest.json", "v2 manifest", errors)
+    if not isinstance(manifest, dict):
+        errors.append("evals/v2/manifest.json: expected an object")
+        return {}
+    _find_forbidden_result_fields(manifest, "evals/v2/manifest.json", errors)
+    for field_name, expected_value in (
+        ("suite_name", V2_SUITE_NAME),
+        ("suite_version", V2_SUITE_VERSION),
+        ("created_for_phase", 8),
+        ("source_checkpoint", PHASE8_SOURCE_CHECKPOINT),
+        ("public_visibility", "PUBLIC"),
+        ("results_status", "TEST_DEFINITIONS_ONLY_NO_MODEL_RESULTS"),
+    ):
+        if manifest.get(field_name) != expected_value:
+            errors.append(
+                f"evals/v2/manifest.json: {field_name} must be {expected_value!r}"
+            )
+    if manifest.get("mutation_file") != "mutations.json":
+        errors.append("evals/v2/manifest.json: mutation_file must be 'mutations.json'")
+    if manifest.get("holdout_policy") != "HOLDOUT_POLICY.md":
+        errors.append("evals/v2/manifest.json: holdout_policy must be 'HOLDOUT_POLICY.md'")
+    separation = manifest.get("historical_v1_separation")
+    if not isinstance(separation, str) or "no v2 model results" not in separation.lower():
+        errors.append("evals/v2/manifest.json: historical v1 separation must state no v2 model results")
+    if manifest.get("scenario_files") != list(V2_SCENARIO_FILES):
+        errors.append("evals/v2/manifest.json: scenario_files must match canonical grouped files")
+
+    category_counts = Counter(
+        scenario.get("category") for scenario in scenarios if isinstance(scenario.get("category"), str)
+    )
+    kind_counts = Counter(
+        scenario.get("kind") for scenario in scenarios if isinstance(scenario.get("kind"), str)
+    )
+    language_counts: Counter[str] = Counter()
+    for scenario in scenarios:
+        language = scenario.get("language")
+        languages = language if isinstance(language, list) else [language]
+        language_counts.update(tag for tag in languages if isinstance(tag, str))
+    multi_turn_count = sum(isinstance(scenario.get("turns"), list) for scenario in scenarios)
+    chain_count = sum(scenario.get("kind") == "CHAIN" for scenario in scenarios)
+    exact_count = sum(
+        isinstance(scenario.get("expected"), dict)
+        and isinstance(scenario["expected"].get("expected_risk"), dict)
+        and scenario["expected"]["expected_risk"].get("mode") == "EXACT"
+        for scenario in scenarios
+    )
+    non_english_count = sum(scenario.get("language") != "en" for scenario in scenarios)
+    clean_boundary_count = kind_counts["CLEAN"] + kind_counts["BOUNDARY"]
+    redaction_count = sum(
+        isinstance(scenario.get("expected"), dict)
+        and scenario["expected"].get("secret_redaction_expectation") in {"REDACT", "REDACT_AND_ROTATE"}
+        for scenario in scenarios
+    )
+
+    recomputed_manifest = {
+        "scenario_count": len(scenarios),
+        "category_counts": dict(sorted(category_counts.items())),
+        "kind_counts": dict(sorted(kind_counts.items())),
+        "language_counts": dict(sorted(language_counts.items())),
+        "multi_turn_count": multi_turn_count,
+        "attack_chain_count": chain_count,
+        "exact_score_count": exact_count,
+        "non_english_or_mixed_count": non_english_count,
+        "technique_coverage_count": len(technique_ids),
+        "mutation_count": len(mutation_ids),
+    }
+    for field_name, expected_value in recomputed_manifest.items():
+        if manifest.get(field_name) != expected_value:
+            errors.append(
+                f"evals/v2/manifest.json: {field_name} mismatch; stored "
+                f"{manifest.get(field_name)!r}, recomputed {expected_value!r}"
+            )
+
+    if len(scenarios) < 72:
+        errors.append(f"evals/v2: at least 72 public scenarios required; found {len(scenarios)}")
+    for category, minimum in V2_CATEGORY_MINIMUMS.items():
+        if category_counts[category] < minimum:
+            errors.append(
+                f"evals/v2: category {category} requires at least {minimum} scenarios; "
+                f"found {category_counts[category]}"
+            )
+    if clean_boundary_count < 12:
+        errors.append(
+            f"evals/v2: at least 12 clean/boundary controls required; found {clean_boundary_count}"
+        )
+    if multi_turn_count < 10:
+        errors.append(f"evals/v2: at least 10 multi-turn scenarios required; found {multi_turn_count}")
+    if chain_count < 10:
+        errors.append(f"evals/v2: at least 10 attack-chain scenarios required; found {chain_count}")
+    if non_english_count < 16:
+        errors.append(
+            f"evals/v2: at least 16 non-English/mixed-language scenarios required; "
+            f"found {non_english_count}"
+        )
+    missing_languages = V2_REQUIRED_LANGUAGES - set(language_counts)
+    if missing_languages:
+        errors.append(f"evals/v2: required languages missing {sorted(missing_languages)!r}")
+    for language in V2_REQUIRED_LANGUAGES - {"en"}:
+        if language_counts[language] < 2:
+            errors.append(f"evals/v2: language {language} requires at least two scenarios")
+    if exact_count < 12:
+        errors.append(f"evals/v2: at least 12 exact-score scenarios required; found {exact_count}")
+    if redaction_count < 3:
+        errors.append(f"evals/v2: at least three secret-redaction scenarios required; found {redaction_count}")
+
+    covered_techniques: set[str] = set()
+    positive_by_technique: dict[str, list[str]] = {key: [] for key in technique_ids}
+    negative_by_technique: dict[str, list[str]] = {key: [] for key in technique_ids}
+    for scenario in scenarios:
+        expected = scenario.get("expected")
+        if not isinstance(expected, dict) or not isinstance(scenario.get("id"), str):
+            continue
+        for field_name in ("must_detect", "may_detect", "must_not_detect"):
+            values = expected.get(field_name)
+            if isinstance(values, list):
+                covered_techniques.update(value for value in values if value in technique_ids)
+        for technique_id in expected.get("must_detect", []):
+            if technique_id in positive_by_technique:
+                positive_by_technique[technique_id].append(scenario["id"])
+        for technique_id in expected.get("must_not_detect", []):
+            if technique_id in negative_by_technique:
+                negative_by_technique[technique_id].append(scenario["id"])
+    uncovered = technique_ids - covered_techniques
+    if uncovered:
+        errors.append(f"evals/v2: uncovered RenGuard technique(s) {sorted(uncovered)!r}")
+
+    expected_coverage = []
+    for technique_id in sorted(technique_ids):
+        positive = positive_by_technique[technique_id]
+        negative = negative_by_technique[technique_id]
+        expected_coverage.append(
+            {
+                "technique_id": technique_id,
+                "coverage_status": "PARTIAL" if technique_id in {
+                    "RG-PI-007", "RG-PI-010", "RG-RA-003", "RG-MI-001", "RG-MM-001"
+                } else "CORE",
+                "positive_scenario_count": len(positive),
+                "boundary_clean_scenario_count": len(negative),
+                "scenario_ids": positive + negative,
+            }
+        )
+    if manifest.get("technique_coverage") != expected_coverage:
+        errors.append("evals/v2/manifest.json: technique coverage matrix mismatch")
+
+    severities = {
+        severity
+        for scenario in scenarios
+        if isinstance(scenario.get("expected"), dict)
+        and isinstance(scenario["expected"].get("expected_risk"), dict)
+        and isinstance(
+            severity := scenario["expected"]["expected_risk"].get("severity"), str
+        )
+    }
+    if not set(SEVERITY_BANDS).issubset(severities):
+        errors.append("evals/v2: asserted severity coverage must include all five bands")
+    confidences = {
+        confidence
+        for scenario in scenarios
+        if isinstance(scenario.get("expected"), dict)
+        and isinstance(confidence := scenario["expected"].get("expected_confidence"), str)
+    }
+    if not CONFIDENCE_LEVELS.issubset(confidences):
+        errors.append("evals/v2: confidence coverage must include HIGH, MEDIUM, and LOW")
+
+    return {
+        **recomputed_manifest,
+        "clean_boundary_count": clean_boundary_count,
+        "redaction_count": redaction_count,
+        "covered_techniques": len(covered_techniques),
+    }
+
+
 def validate_repository(root: Path) -> ValidationResult:
     root = root.resolve()
     validation = ValidationResult()
@@ -1889,7 +2542,18 @@ def validate_repository(root: Path) -> ValidationResult:
     _validate_phase7_references(root, validation.errors)
     _validate_risk_reference(root, validation.errors)
     _validate_phase3_examples(root, REQUIRED_TECHNIQUE_IDS, validation.errors)
-    for relative_name in ("README.md", "SKILL.md", *TAXONOMY_FILES, *EXAMPLE_FILES):
+    _validate_preserved_file_hashes(root, validation.errors)
+    validation.v2_metrics = _validate_v2_suite(
+        root, REQUIRED_TECHNIQUE_IDS, validation.errors
+    )
+    for relative_name in (
+        "README.md",
+        "SKILL.md",
+        "evals/v2/README.md",
+        "evals/v2/HOLDOUT_POLICY.md",
+        *TAXONOMY_FILES,
+        *EXAMPLE_FILES,
+    ):
         _validate_markdown_links(root, relative_name, validation.errors)
     return validation
 
@@ -1920,6 +2584,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"- benchmark runs: {result.run_count}")
     print(f"- RenGuard techniques: {result.technique_count}")
     print(f"- hardening patterns: {result.hardening_pattern_count}")
+    if result.v2_metrics:
+        print(f"- v2 public scenarios: {result.v2_metrics['scenario_count']}")
+        print(
+            f"- v2 corpus coverage: {result.v2_metrics['covered_techniques']}/"
+            f"{len(REQUIRED_TECHNIQUE_IDS)} techniques"
+        )
     for configuration in CONFIGURATIONS:
         metrics = result.metrics[configuration]
         assertions = metrics["assertions"]

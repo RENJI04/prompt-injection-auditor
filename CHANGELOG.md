@@ -5,6 +5,33 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 8 advanced evaluation suite
+
+- Added a separate `evals/v2/` public corpus with 72 stable-ID security-reasoning
+  scenarios grouped across direct authority, retrieval, hidden context, tools, MCP,
+  memory, agentic, multimodal, output-sink, cross-cutting, and clean-control domains.
+- Covered all 38 RenGuard techniques without changing their 33 CORE / 5 PARTIAL /
+  0 PLANNED implementation posture; corpus coverage is not detection performance.
+- Added clean and nuanced boundary controls, 12 explicit multi-turn scenarios,
+  19 ordered cross-component chains, and 22 non-English or mixed-language scenarios
+  across English, Arabic, French, Chinese, Spanish, Japanese, and Russian.
+- Added 15 safe declarative mutation recipes without opaque credential, malware, or
+  destructive-command payloads.
+- Added 12 deterministic Phase 3 scoring fixtures spanning INFORMATIONAL through
+  CRITICAL, plus independent risk, confidence, remediation, redaction, framework,
+  technique, security, and formatting assertion groups.
+- Added normalized multimodal descriptors, declarative non-executed output sinks, and
+  five synthetic-secret redaction/rotation cases with explicit capability limitations.
+- Added public suite documentation, stable-ID and case-mutability rules, contribution
+  guidance, a private holdout policy with no fake hidden cases, and a recomputable
+  manifest/technique coverage matrix.
+- Extended the network-independent validator and standard-library tests for corpus
+  contracts, counts, mappings, exact scores, languages, mutations, holdout honesty,
+  historical hashes, and Phase 3–7 integrity.
+- Preserved the historical benchmark and legacy eval paths exactly, kept the 40/41
+  result tied to original source commit `c2e8de4`, and produced no model calls, v2 model
+  results, detection percentages, runner, or Phase 9 implementation.
+
 ### Phase 7 multimodal and output security engine
 
 - Added conditional specialized audit domains for images/screenshots, OCR, audio/

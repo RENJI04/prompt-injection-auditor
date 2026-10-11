@@ -55,6 +55,16 @@ class RepositoryValidationTests(unittest.TestCase):
         self._write_json(relative_name, data)
         return validate_repository(self.root).errors
 
+    def _change_v2_case(self, relative_name: str, index: int, change) -> list[str]:
+        data = self._read_json(relative_name)
+        change(data["scenarios"][index])
+        self._write_json(relative_name, data)
+        return validate_repository(self.root).errors
+
+    def _v2_scenario_files(self) -> list[Path]:
+        manifest = self._read_json("evals/v2/manifest.json")
+        return [self.root / "evals" / "v2" / name for name in manifest["scenario_files"]]
+
     def test_repository_fixture_is_valid(self) -> None:
         self.assertEqual([], validate_repository(self.root).errors)
 
@@ -572,6 +582,222 @@ class RepositoryValidationTests(unittest.TestCase):
             "- **Current RenGuard Coverage Status:** CORE",
         )
         self.assertTrue(any("RG-MM-001 Phase 7 coverage status must be PARTIAL" in error for error in errors))
+
+    def test_rejects_duplicate_v2_eval_id(self) -> None:
+        data = self._read_json("evals/v2/direct-authority.json")
+        data["scenarios"][1]["id"] = data["scenarios"][0]["id"]
+        self._write_json("evals/v2/direct-authority.json", data)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("duplicate v2 eval ID" in error for error in errors))
+
+    def test_rejects_malformed_v2_eval_id(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case.__setitem__("id", "RG-EVAL-V2-1"),
+        )
+        self.assertTrue(any("malformed v2 eval ID" in error for error in errors))
+
+    def test_rejects_v2_missing_required_field(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case.pop("description"),
+        )
+        self.assertTrue(any("missing required field" in error for error in errors))
+
+    def test_rejects_invalid_v2_scenario_kind(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case.__setitem__("kind", "SUSPICIOUS"),
+        )
+        self.assertTrue(any("invalid scenario kind" in error for error in errors))
+
+    def test_rejects_invalid_v2_language_tag(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case.__setitem__("language", "english"),
+        )
+        self.assertTrue(any("invalid language tag metadata" in error for error in errors))
+
+    def test_rejects_unknown_v2_technique_id(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case["expected"]["must_detect"].__setitem__(0, "RG-PI-999"),
+        )
+        self.assertTrue(any("unknown RenGuard technique ID" in error for error in errors))
+
+    def test_rejects_unknown_v2_hardening_pattern(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case["expected"].__setitem__(
+                "required_hardening_patterns", ["RG-HARD-P-999"]
+            ),
+        )
+        self.assertTrue(any("unknown hardening pattern ID" in error for error in errors))
+
+    def test_rejects_unknown_v2_owasp_llm_mapping(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case["expected"]["expected_owasp_llm"].__setitem__(0, "LLM99:2026"),
+        )
+        self.assertTrue(any("unknown OWASP LLM 2026 mapping" in error for error in errors))
+
+    def test_rejects_agentic_mapping_for_non_agentic_v2_case(self) -> None:
+        def change(case) -> None:
+            case["agentic_applicable"] = False
+            case["target_profile"]["agentic"] = False
+
+        errors = self._change_v2_case("evals/v2/mcp.json", 0, change)
+        self.assertTrue(any("Agentic mapping used for non-agentic scenario" in error for error in errors))
+
+    def test_rejects_invalid_v2_assertion_group(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case["expected"]["assertion_groups"].append("KEYWORD_MATCH"),
+        )
+        self.assertTrue(any("invalid assertion group" in error for error in errors))
+
+    def test_rejects_exact_v2_risk_missing_dimension(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/rag-retrieval.json", 0,
+            lambda case: case["expected"]["expected_risk"]["dimensions"].pop("G"),
+        )
+        self.assertTrue(any("EXACT risk dimensions must contain all 12" in error for error in errors))
+
+    def test_rejects_exact_v2_risk_score_mismatch(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/rag-retrieval.json", 0,
+            lambda case: case["expected"]["expected_risk"].__setitem__("score", 1.0),
+        )
+        self.assertTrue(any("exact risk score mismatch" in error for error in errors))
+
+    def test_rejects_exact_v2_risk_severity_mismatch(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/rag-retrieval.json", 0,
+            lambda case: case["expected"]["expected_risk"].__setitem__("severity", "LOW"),
+        )
+        self.assertTrue(any("exact risk score / severity mismatch" in error for error in errors))
+
+    def test_rejects_clean_v2_case_requiring_detection(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/clean-controls.json", 0,
+            lambda case: case["expected"].__setitem__("must_detect", ["RG-PI-001"]),
+        )
+        self.assertTrue(any("CLEAN case must not require vulnerability detection" in error for error in errors))
+
+    def test_rejects_unknown_v2_mutation_id(self) -> None:
+        def change(case) -> None:
+            case["mutation_eligible"] = True
+            case["mutation_ids"] = ["RG-MUT-999"]
+
+        errors = self._change_v2_case("evals/v2/direct-authority.json", 0, change)
+        self.assertTrue(any("unknown mutation ID" in error for error in errors))
+
+    def test_rejects_duplicate_v2_mutation_id(self) -> None:
+        data = self._read_json("evals/v2/mutations.json")
+        data["mutation_recipes"][1]["id"] = data["mutation_recipes"][0]["id"]
+        self._write_json("evals/v2/mutations.json", data)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("duplicate mutation ID" in error for error in errors))
+
+    def test_rejects_v2_manifest_scenario_count_mismatch(self) -> None:
+        data = self._read_json("evals/v2/manifest.json")
+        data["scenario_count"] += 1
+        self._write_json("evals/v2/manifest.json", data)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("scenario_count mismatch" in error for error in errors))
+
+    def test_rejects_v2_manifest_category_count_mismatch(self) -> None:
+        data = self._read_json("evals/v2/manifest.json")
+        data["category_counts"]["TOOLS"] += 1
+        self._write_json("evals/v2/manifest.json", data)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("category_counts mismatch" in error for error in errors))
+
+    def test_rejects_v2_manifest_language_count_mismatch(self) -> None:
+        data = self._read_json("evals/v2/manifest.json")
+        data["language_counts"]["en"] += 1
+        self._write_json("evals/v2/manifest.json", data)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("language_counts mismatch" in error for error in errors))
+
+    def test_rejects_too_few_v2_clean_boundary_controls(self) -> None:
+        changed = 0
+        for path in self._v2_scenario_files():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for case in data["scenarios"]:
+                if case["kind"] in {"CLEAN", "BOUNDARY"} and changed < 7:
+                    case["kind"] = "ATTACK"
+                    changed += 1
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        self.assertEqual(7, changed)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("at least 12 clean/boundary controls required" in error for error in errors))
+
+    def test_rejects_too_few_v2_multilingual_cases(self) -> None:
+        changed = 0
+        for path in self._v2_scenario_files():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for case in data["scenarios"]:
+                if case["language"] != "en" and changed < 7:
+                    case["language"] = "en"
+                    changed += 1
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        self.assertEqual(7, changed)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("at least 16 non-English/mixed-language" in error for error in errors))
+
+    def test_rejects_too_few_v2_multi_turn_cases(self) -> None:
+        changed = 0
+        for path in self._v2_scenario_files():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for case in data["scenarios"]:
+                if "turns" in case and changed < 3:
+                    case.pop("turns")
+                    changed += 1
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        self.assertEqual(3, changed)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("at least 10 multi-turn scenarios required" in error for error in errors))
+
+    def test_rejects_too_few_v2_attack_chain_cases(self) -> None:
+        changed = 0
+        for path in self._v2_scenario_files():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for case in data["scenarios"]:
+                if case["kind"] == "CHAIN" and changed < 10:
+                    case["kind"] = "ATTACK"
+                    changed += 1
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        self.assertEqual(10, changed)
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("at least 10 attack-chain scenarios required" in error for error in errors))
+
+    def test_rejects_uncovered_v2_renguard_technique(self) -> None:
+        for path in self._v2_scenario_files():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for case in data["scenarios"]:
+                expected = case["expected"]
+                for field in ("must_detect", "may_detect", "must_not_detect"):
+                    expected[field] = [
+                        "RG-AG-005" if value == "RG-MI-001" else value
+                        for value in expected[field]
+                    ]
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("uncovered RenGuard technique" in error for error in errors))
+
+    def test_rejects_public_v2_case_labeled_hidden(self) -> None:
+        errors = self._change_v2_case(
+            "evals/v2/direct-authority.json", 0,
+            lambda case: case.__setitem__("public_visibility", "HIDDEN_HOLDOUT"),
+        )
+        self.assertTrue(any("falsely labeled private/hidden holdout" in error for error in errors))
+
+    def test_rejects_historical_eval_fixture_mutation(self) -> None:
+        path = self.root / "evals/files/minimal_prompt.txt"
+        path.write_text(path.read_text(encoding="utf-8") + "\nmutation\n", encoding="utf-8")
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("provenance-preserved benchmark/eval path changed" in error for error in errors))
 
     def test_rejects_out_of_range_risk_score(self) -> None:
         errors = self._errors_after_text_replacement(
