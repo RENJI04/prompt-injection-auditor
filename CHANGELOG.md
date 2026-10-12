@@ -5,6 +5,21 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 11 examples and documentation
+
+- Rebuilt the README as an external-reader technical landing page with accurate product
+  boundaries, quick start, audit workflow, domain coverage, risk/hardening summaries,
+  evaluation status, limitations, and repository navigation.
+- Added focused architecture, threat-model, and usage documentation that links to the
+  normative Skill and reference sources rather than duplicating their specifications.
+- Reviewed the four existing worked audits and added safe educational examples for
+  persistent-memory poisoning and MCP multi-agent delegation/approval boundaries.
+- Clarified that public corpus size and synthetic fixture runs are not performance,
+  historical v1 evidence is not a v2 result, multimodal cases use normalized
+  descriptors, and output-sink cases do not execute production effects.
+- Added offline documentation link and claim regression checks without introducing a
+  documentation framework, network dependency, release claim, or hosted-CI claim.
+
 ### Phase 10 CI, schemas, and repository engineering
 
 - Added Draft 2020-12 structural contracts for Phase 8 scenario, suite-manifest, and

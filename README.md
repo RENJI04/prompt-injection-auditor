@@ -2,415 +2,343 @@
 
 > **Model-Agnostic Security for AI Systems & Agents**
 
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Development](https://img.shields.io/badge/version-2.0.0--alpha.1-blue)](SKILL.md)
-[![Historical Assertion Pass Rate](https://img.shields.io/badge/historical_assertion_pass_rate-97.6%25-brightgreen)](benchmarks/benchmark.json)
+RenGuard is a model-agnostic security auditing Skill and framework for AI systems and
+agents. It helps reviewers identify trust-boundary failures, map findings to a stable
+technique taxonomy, assess evidence-bounded risk, and recommend defense in depth across
+prompts, retrieval, memory, tools, MCP, agents, multimodal inputs, and output sinks.
 
-Created by **[Shadow (RENJI04)](https://github.com/RENJI04)**
+RenGuard v2 architecture and evaluation tooling are under active development. No
+official RenGuard v2 live benchmark has been published, and v2.0.0 has not been released.
 
-RenGuard is the successor to Prompt Injection Auditor. The project is evolving from
-a Claude-oriented prompt auditing skill into a provider-neutral AI and agent security
-auditing skill while preserving its skill-first architecture.
+## What RenGuard is—and is not
 
-`SKILL.md` remains the core product. The references, examples, declarative evals,
-historical benchmarks, and validation tooling support and test the skill; they do not
-turn this repository into a web application, backend service, or standalone SaaS.
+`SKILL.md` is the core audit methodology. RenGuard analyzes supplied architecture,
+configuration, prompts, transcripts, and artifacts; it produces findings, attack chains,
+risk assessments, and proposed controls. It is not a firewall, runtime enforcement
+gateway, malware scanner, sandbox, WAF, hosted API, or production SOC platform.
 
-## Current Scope
+RenGuard assists security review. It does not replace application authorization,
+runtime isolation, network controls, parameter-bound human approval, or professional
+testing when those controls are required.
 
-RenGuard currently audits system prompts, AI application instructions, conversation
-logs, and agent specifications using 38 stable, provider-neutral RenGuard technique
-IDs. It produces a structured report with calibrated findings, OWASP mappings, concrete
-defensive exploit demonstrations, a hardened rewrite, defense-in-depth recommendations,
-and a deterministic **RenGuard Risk Score** from 0.0–10.0.
+## Capability overview
 
-RenGuard v2-alpha now conditionally applies specialized, architecture-aware analysis to
-AI tools/functions, MCP deployments, agentic and multi-agent systems, RAG/retrieval,
-and persistent/shared memory systems. Tool analysis covers capability classes, origin,
-descriptions, schemas, output and recovery injection, deterministic authorization,
-credentials, composition, code execution, retries, budgets, and action-bound approval.
-MCP analysis is protocol-version aware and covers server/tool trust, audience- and
-scope-bound authorization, unsafe token passthrough, confused-deputy and conditional
-discovery/SSRF paths, resources/prompts, dynamic capability mutation, supply chain, and
-interactive flows. Agentic analysis covers autonomy, goal hijack, identity and privilege
-propagation, scoped delegation, inter-agent handoff, cascading failure, human trust,
-unexpected code execution, supply chain, long-running/rogue execution, and independently
-enforced termination.
-
-RAG analysis covers source trust,
-provenance, ingestion, pre-retrieval authorization, tenant isolation, chunk metadata,
-query rewriting, corpus/index poisoning exposure, caches, and retrieval-to-action chains.
-Memory analysis covers authority separation, read/write authorization, provenance,
-schema, persistence/TTL, cross-session influence, cross-user/tenant isolation,
-shared-agent state, conflict policy, and rollback. These modules activate only when the
-corresponding subsystem is evidenced; they do not invent RAG or memory findings.
-
-Phase 7 adds conditional multimodal and downstream-output analysis. Multimodal review
-covers image/screenshot authority, OCR and transcription boundaries, audio/video-derived
-instructions, captions, document channels, metadata, provenance, identity assumptions,
-and media-to-tool chains. Output review covers structural versus semantic validation,
-authorization, sink-specific safety, and command, SQL, HTML/DOM, Markdown, URL, path,
-template, code, serialization, JSON, spreadsheet, log/header, and outbound-message
-consumers. Output sink classes `OS0`–`OS4` describe architecture and do not set severity.
-
-Phase 8 adds the separate [RenGuard v2 public evaluation suite](evals/v2/README.md):
-72 security-reasoning definitions spanning all 38 techniques, with clean and boundary
-controls, multi-turn and cross-component chains, seven-language coverage, declarative
-mutation recipes, and 12 deterministic risk fixtures. These are test definitions only.
-No model was called, no v2 result exists, and a passing corpus validator is not a model-
-security benchmark result.
-
-RenGuard performs evidence-bounded architecture, configuration, prompt, and supplied
-artifact review. It does **not** automatically connect to arbitrary MCP servers, execute
-their tools, penetrate remote infrastructure, validate a live OAuth/IAM backend, or
-prove runtime controls without evidence. Architecture/configuration review is not live
-penetration testing, MCP compliance is not proof that a server is benign, and framework
-mapping is not empirical coverage of every risk.
-
-Phase 3 findings explicitly separate five concepts:
-
-- **Technique** — what the attacker does or how the security failure occurs.
-- **Weakness** — the missing or ineffective control that enables it.
-- **Impact** — the consequence in the supplied deployment context.
-- **Risk** — the calculated likelihood/consequence score and severity band.
-- **Confidence** — evidence quality, reported independently from risk.
-
-RenGuard Risk Score is a project-specific AI security assessment model and is not CVSS.
-It uses 12 documented 0–4 dimensions, visible weights, and a reproducible formula. Risk
-does not equal confidence: incomplete runtime evidence lowers confidence but does not
-silently reduce a potentially severe consequence. See the canonical
-[risk-scoring specification](references/risk-scoring.md).
-
-Each dimension distinguishes **known zero**, **not applicable**, and **unknown /
-insufficient evidence**. The first two legitimately score zero; unknown does not
-automatically become zero or an invented high value. RenGuard uses the lowest value
-positively supported by evidence, records material gaps, lowers Confidence when
-appropriate, and adds a sensitivity note when the missing fact could change severity.
-The 40% Exploitability / Exposure component is ordinal, not an estimate of empirical
-exploit probability; Impact / Consequence contributes the remaining 60%.
-
-The audit methodology is designed to be model and provider neutral. It can be applied
-to GPT-, Claude-, Gemini-, Llama-, Mistral-, DeepSeek-, Qwen-, local/self-hosted,
-custom, unknown, and mixed-model architectures. This is a design property, not a claim
-that RenGuard has been installed on or empirically benchmarked against every listed
-provider. Host-specific skill installation and runtime compatibility vary by platform.
-
-The current taxonomy maps findings to the
-[OWASP Top 10 for LLM Applications 2026](references/owasp-llm-2026.md) and, only for
-agentic targets, the
-[OWASP Top 10 for Agentic Applications 2026](references/owasp-agentic-2026.md).
-Framework mapping support and empirical detection coverage are separate: the current
-eight-eval suite does not test every technique or every OWASP category.
-
-Projected residual risk is also distinct from implemented protection. A post-control
-score is labeled projected unless the named prompt, authorization, tool, runtime,
-network, human-approval, and monitoring controls are evidenced and verified.
-
-## Defense-in-Depth Hardening
-
-RenGuard does not treat prompt rewriting as the primary security solution. Prompt
-guidance is useful for defining scope, authority, and safe behavior, but prompt
-instructions are not a hard security boundary. Authentication, authorization, tenant
-isolation, secret handling, tool permissions, sandboxing, egress policy, and sensitive
-approvals should be enforced outside the model wherever possible.
-
-| Control type | What it contributes | Security boundary |
+| Area | What RenGuard audits | Important boundary |
 |---|---|---|
-| Prompt guidance | Authority, scope, untrusted-content handling, refusal behavior | Model-interpreted and probabilistic |
-| Application enforcement | Identity-aware authorization, schemas, business rules, tool mediation | Deterministic when correctly implemented |
-| Runtime/platform enforcement | Sandboxing, IAM, resource limits, network egress, independent approval | Prevents or contains prohibited effects outside the model |
+| Prompt and instruction security | Authority conflicts, indirect injection, hidden context, multi-turn drift | Prompt guidance is probabilistic, not deterministic enforcement |
+| RAG and retrieval | Source trust, provenance, ingestion, authorization, tenant isolation, poisoning, retrieval-to-action chains | Retrieved or internal content remains data, not policy |
+| Persistent memory | Read/write scope, provenance, poisoning, cross-session/tenant influence, expiry, rollback | Stored memory does not become system policy or authorization |
+| Tools and functions | Capability, origin, schemas, parameters, outputs, retries, credentials, approvals | Tool availability and descriptions do not grant permission |
+| MCP | Server/tool trust, origin, scope and audience, resources/prompts, token handling, capability mutation | Tool names and annotations are not identity or enforcement |
+| Agentic workflows | Delegation, privilege inheritance, handoffs, inter-agent trust, cascade, termination | An agent's self-reported identity is not authentication |
+| Multimodal inputs | Images, screenshots, OCR, audio, transcripts, video, captions, metadata | Appearance and derived text do not authenticate identity or approval |
+| Output sinks | Structural, semantic, authorization, and sink-specific handling for commands, SQL, HTML, Markdown, URLs, paths, code, and messages | Model output remains untrusted until checked for its exact sink |
+| Risk scoring | Twelve evidence-backed dimensions, severity, uncertainty, and confidence | `UNKNOWN` is not zero; confidence is separate from risk |
+| Hardening | Layered preventive, containment, detection, and recovery controls | Proposed controls are not reported as implemented |
+| Evaluation | Public scenarios, mutation recipes, offline runner, schemas, and CI checks | Corpus size and fixture tests are not model performance |
 
-The canonical [hardening catalog](references/hardening-patterns.md) defines 12 control
-layers, five enforcement-strength levels, implementation status, prevention/containment/
-detection/recovery functions, stable `RG-HARD-...` pattern IDs, verification guidance,
-compensating controls, and reusable defense-in-depth bundles. A proposed control is not
-reported as implemented, and mitigation strength does not produce a generic score
-discount. Residual risk remains after every layer.
+These are audit capabilities, not claims that RenGuard itself enforces controls at
+runtime.
 
-## Taxonomy Architecture
+## What model-agnostic means
 
-RenGuard uses three layers:
+The methodology, RenGuard technique taxonomy, risk model, and benchmark adapter boundary
+do not depend on one model vendor. They can be applied to single-model, mixed-model,
+local, hosted, and unknown-provider architectures.
 
-1. **RenGuard techniques** — stable `RG-` IDs used to classify findings.
-2. **OWASP LLM Top 10 2026** — broad risk-category cross-references for AI applications.
-3. **OWASP Agentic Top 10 2026** — conditional cross-references for systems with tools,
-   planning, memory, delegation, autonomy, inter-agent communication, or side effects.
+Model-agnostic does **not** mean that every model or provider protocol has been tested,
+that different models behave identically, or that RenGuard is universally compatible
+with every host. Provider and framework behavior still requires evidence.
 
-| Technique family | Prefix | Techniques | Current coverage posture |
-|---|---|---:|---|
-| Prompt Injection | `RG-PI` | 10 | CORE and PARTIAL |
-| Hidden Context / Information Exposure | `RG-HC` | 4 | CORE |
-| Privilege / Authority | `RG-PR` | 3 | CORE |
-| Tools / Actions | `RG-TL` | 5 | CORE |
-| Memory / Context | `RG-ME` | 2 | CORE |
-| Agent / Multi-Agent | `RG-AG` | 5 | CORE |
-| Retrieval / Vector / RAG | `RG-RA` | 3 | CORE and PARTIAL |
-| Supply Chain | `RG-SC` | 1 | CORE |
-| Execution / Code | `RG-EX` | 1 | CORE |
-| Output Handling | `RG-OU` | 1 | CORE |
-| Resource / Consumption | `RG-RC` | 1 | CORE |
-| Misinformation / Grounding | `RG-MI` | 1 | PARTIAL |
-| Multimodal | `RG-MM` | 1 | PARTIAL |
+## Core trust-boundary principle
 
-See the [taxonomy methodology and v1→v2 crosswalk](references/vulnerability-taxonomy.md)
-and the [canonical technique catalog](references/renguard-techniques.md). `CORE`,
-`PARTIAL`, and `PLANNED` describe available audit guidance, not benchmark percentages.
-The current catalog contains 33 CORE, 5 PARTIAL, and 0 PLANNED techniques.
+Content does not gain instruction authority merely because it is retrieved, internal,
+stored in memory, returned by a tool, exposed through MCP, generated by another agent,
+visible in an image, transcribed from audio, structured as JSON, or produced by a model.
 
-## How to Use the Skill
+Security-critical identity, authorization, resource scope, and approval should come from
+trusted application or platform context. A chat-level `CONFIRM`, screenshot of an
+approval, tool name, or self-reported agent role is not authentication or authorization.
 
-Install or load the repository using the skill mechanism supported by your host, then
-ask RenGuard to review an artifact. Example requests:
+## Audit workflow
 
-```text
-Audit this system prompt for injection vulnerabilities: [paste prompt]
-Is this AI assistant configuration secure?
-Red-team this chatbot prompt and show me the attack surface.
-Harden this agent specification against prompt injection.
-```
+1. **Profile the architecture.** Identify models, data stores, tools, MCP servers,
+   agents, sinks, identities, and operational constraints.
+2. **Map trust boundaries.** Separate trusted control-plane facts from untrusted content
+   and model-generated proposals.
+3. **Record findings.** Distinguish attack technique, enabling weakness, and impact; map
+   stable `RG-*` technique IDs and applicable OWASP crosswalks.
+4. **Build attack chains.** Trace how influence crosses retrieval, memory, tool, agent,
+   multimodal, and output boundaries.
+5. **Score risk.** Use the documented twelve-dimension model and report confidence
+   independently.
+6. **Recommend layered hardening.** Combine prompt guidance with deterministic
+   application, authorization, runtime, network, monitoring, and recovery controls.
+7. **Reassess residual risk.** Label it projected until control implementation is
+   evidenced; hardening does not automatically make residual risk zero.
 
-Hosts that support automatic skill selection may also select RenGuard when a system
-prompt or agent configuration is supplied. That behavior depends on the host; the core
-methodology itself does not require external tools for prompt-level analysis.
+See [Architecture](docs/architecture.md), [Threat Model](docs/threat-model.md), and
+[Usage](docs/usage.md) for the full reader-oriented path through the methodology.
 
-## Example Output
+## Quick start
 
-From the NovaPay fintech chatbot audit in
-[Example 1](examples/01-chatbot-prompt.md):
+RenGuard is a Skill/framework, not a published pip package or hosted scanner.
 
-```text
-## RenGuard Security Audit Report
+1. Read or load [`SKILL.md`](SKILL.md) using the Skill mechanism provided by your host.
+2. Supply the system architecture and relevant prompts, configurations, transcripts, or
+   artifacts. Call out unknown evidence instead of guessing.
+3. Ask for a RenGuard audit, for example:
 
-Target: Penny, NovaPay Customer Support
-Overall Risk: 7.5 HIGH
-Overall Confidence: MEDIUM
-Findings: 5 findings (0 Critical, 2 High, 3 Medium, 0 Low)
+   ```text
+   Audit this RAG assistant and its email tool. Identify trust boundaries, findings,
+   attack chains, RenGuard techniques, risk, confidence, and layered hardening.
+   ```
 
-RG-F-001 — Hardcoded Production API Token [HIGH]
-RenGuard Technique: RG-HC-003 — Credential or Secret Exposure
-OWASP LLM 2026: LLM02:2026 Sensitive Information Disclosure
-OWASP Agentic 2026: ASI03 Identity & Privilege Abuse
-RenGuard Risk Score: 7.5 HIGH
-Confidence: MEDIUM
-Impact: An attacker may obtain a transactions API credential from the prompt.
-```
+4. Compare the result with the worked [`examples/`](examples/) and the canonical
+   references linked below.
 
-Prompt hardening is one layer of defense. RenGuard also recommends controls such as
-least-privilege tool access, authentication, schema validation, output handling,
-human approval, secrets management, and monitoring where the audited system needs them.
+Repository engineering and benchmark commands are offline by default:
 
-## Repository Structure
-
-```text
-prompt-injection-auditor/             # Remote repository name remains unchanged
-├── SKILL.md                          # Core RenGuard auditing skill
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md                  # Engineering and evaluation contribution rules
-├── SECURITY.md                      # Repository vulnerability-reporting guidance
-├── schemas/                         # Draft 2020-12 contracts and version registry
-├── .github/workflows/ci.yml         # Model-offline repository quality gate
-├── references/
-│   ├── vulnerability-taxonomy.md     # Methodology and v1→v2 crosswalk
-│   ├── renguard-techniques.md        # Canonical 38-technique catalog
-│   ├── owasp-llm-2026.md             # OWASP LLM 2026 reference
-│   ├── owasp-agentic-2026.md         # Conditional Agentic 2026 reference
-│   ├── risk-scoring.md                # Canonical RenGuard Risk Score specification
-│   ├── hardening-patterns.md         # Canonical defense-in-depth catalog
-│   ├── tool-security.md               # Generic tool/function specialized audit domain
-│   ├── mcp-security.md                # Version-aware MCP specialized audit domain
-│   ├── agentic-security.md            # Agentic/multi-agent specialized audit domain
-│   ├── rag-security.md               # Specialized RAG/retrieval audit domain
-│   ├── memory-security.md            # Specialized persistent-memory audit domain
-│   ├── multimodal-security.md        # Media/OCR/transcription specialized audit domain
-│   └── output-security.md            # Downstream output/sink specialized audit domain
-├── examples/                         # Worked audit examples
-├── evals/
-│   ├── evals.json                    # Legacy v2-alpha definitions; not v1 result source
-│   ├── files/                        # Legacy v2-alpha fixtures; not v1 result source
-│   └── v2/                           # Public Phase 8 definitions; no model results
-│       ├── manifest.json             # Recomputable suite counts and coverage matrix
-│       ├── *.json                    # Domain-grouped public scenarios and mutations
-│       ├── README.md                 # Scenario contract and contribution rules
-│       └── HOLDOUT_POLICY.md         # Policy only; no supposed-secret public cases
-├── benchmarks/
-│   └── benchmark.json                # Canonical corrected historical v1 artifact
-├── scripts/
-│   ├── validate_repo.py             # Dependency-free semantic validator
-│   ├── schema_tools.py              # Offline structural-contract validation
-│   └── check.py                     # Canonical local/CI quality gate
-└── tests/
-    ├── test_validation.py           # Semantic validator tests
-    └── test_benchmark.py            # Benchmark runner tests
-```
-
-## Historical Benchmark Results
-
-The repository contains one historical v1 benchmark artifact, dated 2026-04-26.
-Its metadata records `claude-sonnet-4-6` as both executor and analyzer and one run per
-configuration across eight evals. These results describe that recorded run only; they
-are not multi-provider benchmark evidence.
-
-The benchmark corpus is the exact `evals/evals.json` and `evals/files/` tree at source
-commit `c2e8de497b7550ca3ca4df081efae27ddd28d582` (`c2e8de4`). The current working-tree
-eval definitions and fixtures are the RenGuard v2-alpha corpus and were **not** used to
-produce the historical 40/41 result. In Phase 1, the eval prompts and assertions stayed
-unchanged, but the defensive wording in the eval 3 and eval 8 fixtures changed. Use the
-source commit—not the current eval files—when inspecting or reproducing the historical
-benchmark corpus.
-
-Two different aggregation methods are reported and must not be mixed:
-
-| Configuration | Assertion Pass Rate (micro) | Assertions | Mean Eval Pass Rate (macro) |
-|---------------|-----------------------------|------------|-----------------------------|
-| **With Skill** | **97.6%** | **40 / 41** | **97.92%** |
-| Without Skill | 68.3% | 28 / 41 | 70.42% |
-| Difference | +29.27 percentage points | — | +27.50 percentage points |
-
-- **Assertion Pass Rate / micro average** pools all assertions: `passed / total`.
-- **Mean Eval Pass Rate / macro average** gives each eval run equal weight by averaging
-  the pass rate recomputed from that run's assertion counts.
-
-The historical mean execution times were 126.3 seconds with the skill and 103.6875
-seconds without it, a difference of 22.6125 seconds. Timing comes from a single run per
-configuration and should not be generalized.
-
-The canonical historical data and corrected notes are in
-[benchmarks/benchmark.json](benchmarks/benchmark.json). The legacy
-`prompt-injection-auditor` name and Claude model identifiers remain in its metadata to
-preserve provenance.
-
-The historical 40/41 result does not measure the Phase 8 public suite or Phase 5–7
-specializations. The v2 suite has no model outputs or benchmark result. Future private
-holdout content must remain outside this public repository; the committed
-[holdout policy](evals/v2/HOLDOUT_POLICY.md) is not a hidden corpus.
-
-## RenGuard v2 Public Evaluation Suite
-
-The Phase 8 suite has 72 public scenarios grouped into direct authority, RAG/retrieval,
-hidden context, tools, MCP, memory, agentic, multimodal, output-sink, cross-cutting, and
-clean-control domains. It includes clean and nuanced boundary cases to resist keyword-
-only scoring, at least ten explicit multi-turn cases, at least ten ordered attack chains,
-meaningful English, Arabic, French, Chinese, Spanish, Japanese, and Russian content,
-safe mutation recipes, and exact Phase 3 score fixtures where evidence is complete.
-
-Expected results separate security detection, technique mapping, framework mapping,
-risk, confidence, remediation, redaction, and formatting. Multimodal definitions use
-normalized textual descriptors and do not prove native media perception. Output sinks
-are declarative and are never executed. The public corpus and a future private holdout
-share a contract, but actual private cases must be stored outside Git. See the
-[suite documentation](evals/v2/README.md) and
-[manifest](evals/v2/manifest.json).
-
-## Benchmarking
-
-Phase 9 adds a standard-library, offline-first runner for the 72-scenario public suite.
-It supports deterministic loading and filters, `RENGuard` and fair `BASELINE`
-conditions, repeated runs, fixture and replay workflows, assertion-group scoring,
-confusion matrices, precision/recall/F1, Wilson intervals, risk and confidence checks,
-stability, human review, provenance hashes, and compatible-run comparison.
-
-Safe commands do not contact a model:
-
-```sh
-python scripts/run_benchmark.py --help
-python scripts/run_benchmark.py validate
-python scripts/run_benchmark.py plan --condition BOTH --runs 3
-python scripts/run_benchmark.py run --adapter fixture --ids RG-EVAL-V2-001,RG-EVAL-V2-061
-python scripts/run_benchmark.py score --run-dir benchmark-runs/<run-id>
-python scripts/run_benchmark.py summarize --run-dir benchmark-runs/<run-id>
-```
-
-`FixtureAdapter` is test-only, while `ReplayAdapter` rescores captured responses without
-another inference call. `CommandAdapter` uses an argument array and stdin, bounds
-stdout/stderr, and requires the explicit `--execute-live` gate. It can wrap a local
-model or an externally configured client, but the repository provides no provider SDK
-and stores no credentials. Repeats preserve each scenario-run observation. Optional
-cost calculation requires both returned token usage and a user-supplied pricing file;
-the repository does not hardcode provider prices.
-
-External private suites may be supplied with `--suite` and remain outside Git. Public
-suite results carry contamination risk and do not establish unseen-case generalization.
-Normalized multimodal cases do not test native perception, and declarative sink cases
-do not execute exploits. Phase 9 produced no official v2 live result. See
-[Benchmarking RenGuard](BENCHMARKING.md) for the artifact, scoring, review, safety, and
-comparison contracts.
-
-## Repository Validation
-
-The eval definitions, taxonomies, and historical results are declarative data. The
-deterministic validator uses only the Python standard library:
-
-```sh
+```bash
 python scripts/check.py
 python scripts/validate_repo.py
-python scripts/schema_tools.py check-repository
-python -m unittest discover -s tests -v
+python scripts/run_benchmark.py --help
+python scripts/run_benchmark.py validate
 ```
 
-`python scripts/check.py` is the canonical local and CI quality gate. It runs repository
-validation, unit tests, compilation, schema/JSON validation, and a small deterministic
-FixtureAdapter smoke run in a temporary directory. It never passes `--execute-live`,
-requires no provider credentials, and does not produce an official benchmark result.
+The benchmark CLI is evaluation tooling; it is not a general-purpose RenGuard scanner.
+
+## Illustrative audit result
+
+The following is synthetic documentation, not a benchmark result:
+
+```text
+Finding: Retrieved support-ticket text can influence a planner and reach an
+         email-sending tool without deterministic authorization.
+Technique: RG-PI-003 — Retrieved-Document Injection
+Risk: HIGH
+Confidence: MEDIUM — runtime authorization evidence was not supplied
+Attack chain: untrusted ticket -> planner -> proposed recipient/body -> email tool
+Key controls: pre-retrieval authorization, scoped tool capability, exact-action
+              approval, recipient binding, monitoring, and recovery
+```
+
+High severity and medium or low confidence can coexist. Missing architecture evidence
+reduces confidence; it does not earn a lower risk score by being treated as zero.
+
+## Taxonomy and framework crosswalks
+
+RenGuard contains 38 stable techniques across prompt injection, hidden context,
+authority, tools, memory, agents, retrieval, supply chain, execution, output handling,
+resource consumption, grounding, and multimodal security. The current implementation
+posture is 33 `CORE`, 5 `PARTIAL`, and 0 `PLANNED`. Coverage status describes available
+audit capability—not benchmark performance.
+
+The canonical catalog is [`references/renguard-techniques.md`](references/renguard-techniques.md),
+with design methodology and the historical crosswalk in
+[`references/vulnerability-taxonomy.md`](references/vulnerability-taxonomy.md).
+
+Findings may also map to
+[OWASP LLM 2026](references/owasp-llm-2026.md) and, for agentic targets,
+[OWASP Agentic 2026](references/owasp-agentic-2026.md). These mappings are crosswalks;
+they are not OWASP certification or endorsement.
+Framework mapping support and empirical detection coverage are separate.
+
+## Risk scoring
+
+The project-specific RenGuard Risk Score uses twelve dimensions rated 0–4 and produces a
+0.0–10.0 score with `INFORMATIONAL`, `LOW`, `MEDIUM`, `HIGH`, and `CRITICAL` severity
+bands. Exploitability/exposure contributes 40% and impact/consequence 60%.
+
+`KNOWN ZERO`, `NOT APPLICABLE`, and `UNKNOWN / INSUFFICIENT EVIDENCE` are different
+states. Unknown facts are documented and considered in sensitivity analysis; they are
+not silently scored as zero. Confidence describes evidence quality and remains
+independent from risk. The normative formula and examples are in
+[`references/risk-scoring.md`](references/risk-scoring.md).
+
+## Defense-in-depth hardening
+
+The catalog contains 27 stable `RG-HARD-*` patterns across twelve control layers. It
+distinguishes enforcement strength, implementation status, and lifecycle purpose:
+`PREVENT`, `CONTAIN`, `DETECT`, and `RECOVER`.
+
+Prompt guidance can clarify authority and safe behavior, but privileged actions usually
+also need deterministic identity, authorization, tool mediation, runtime isolation,
+network policy, monitoring, and recovery. Human approval is meaningful only when the
+reviewer sees the exact action and the decision is bound to its parameters.
+
+See [`references/hardening-patterns.md`](references/hardening-patterns.md). Controls are
+reported as `PROPOSED` until implementation evidence exists; there is no generic
+mitigation discount to the risk score.
+
+## Specialized security domains
+
+- **RAG:** Retrieved content remains untrusted. Review source provenance, ingestion,
+  deterministic authorization before sensitive content enters context where possible,
+  tenant isolation, query rewriting, poisoning, and retrieval-to-action chains. Corpus
+  poisoning differs from access-control failure. See
+  [`references/rag-security.md`](references/rag-security.md).
+- **Memory:** Persistent/shared memory is scoped data, not policy. Review write and read
+  authorization, provenance, cross-user and cross-tenant isolation, expiry, revocation,
+  conflict handling, and rollback. A validated user preference is not automatically
+  malicious. See [`references/memory-security.md`](references/memory-security.md).
+- **Tools:** Availability is not authorization. Review tool origin, capability,
+  credentials, schemas, parameter scope, output/recovery injection, retries, budgets,
+  and exact-action approval. See
+  [`references/tool-security.md`](references/tool-security.md).
+- **MCP:** Preserve server/tool provenance, token audience and resource boundaries, and
+  independent authorization. Tool names are not identity; annotations are hints rather
+  than enforcement; prompts, resources, and tool output remain untrusted. See
+  [`references/mcp-security.md`](references/mcp-security.md).
+- **Agents:** Review authenticated workload identity, bounded delegation, privilege
+  inheritance, inter-agent message contracts, handoffs, cascading failures, background
+  activity, circuit breakers, termination, and recovery. Avoid treating agents as human
+  principals. See [`references/agentic-security.md`](references/agentic-security.md).
+- **Multimodal:** Images, screenshots, OCR, audio, transcripts, video, captions,
+  document images, and metadata can carry untrusted instructions. RenGuard does not
+  claim steganalysis, deepfake detection, biometric verification, OCR certification,
+  malware scanning, or exhaustive media forensics. See
+  [`references/multimodal-security.md`](references/multimodal-security.md).
+- **Output sinks:** Structure, semantics, authorization, and sink safety are separate.
+  `OS0` is informational output, `OS1` rendered content, `OS2` structured data,
+  `OS3` resource or network selection, and `OS4` command/code execution. Schema-valid
+  JSON is not an authorized action, Markdown is not universally inert, and no universal
+  sanitizer exists. See [`references/output-security.md`](references/output-security.md).
+
+## Examples
+
+Examples are human-readable educational audits; they are not benchmark fixtures or
+performance evidence.
+
+| Example | Focus |
+|---|---|
+| [Customer-support chatbot](examples/01-chatbot-prompt.md) | Secrets, disclosure, self-reported privilege, and transaction authority |
+| [RAG document assistant](examples/02-rag-agent-prompt.md) | Retrieved-document injection, tenant boundaries, and memory interaction |
+| [Tool-using coding agent](examples/03-tool-using-agent-prompt.md) | Privileged tools, sub-agents, recovery injection, and independent controls |
+| [Multimodal output agent](examples/04-multimodal-output-agent.md) | Media-derived authority and URL/command sink handling |
+| [Memory-poisoning assistant](examples/05-memory-poisoning-agent.md) | Durable memory writes, cross-session influence, lifecycle, and rollback |
+| [MCP multi-agent workflow](examples/06-mcp-multi-agent-workflow.md) | Server origin, agent identity, delegation, and parameter-bound approval |
+
+## Evaluation and benchmark status
+
+The public RenGuard v2 evaluation suite contains 72 scenarios covering all 38
+techniques, plus 15 mutation recipes. Seventy-two is the corpus size, not a score. The
+suite is public, so cases may be known to models; public-suite performance alone cannot
+demonstrate unseen-case generalization. Private holdouts must remain outside Git.
+
+The standard-library benchmark runner supports deterministic fixture/replay engineering
+tests and explicitly gated adapters. `FixtureAdapter` output is synthetic. Current
+multimodal cases use normalized descriptors and test security reasoning, not native
+vision/audio perception. Output-sink cases are declarative and do not execute shell,
+SQL, network, or filesystem effects.
+
+No official RenGuard v2 live benchmark or performance percentage exists.
+
+### Historical v1 provenance—not a v2 result
+
+The historical artifact describes one original setup at source commit
+`c2e8de497b7550ca3ca4df081efae27ddd28d582` (`c2e8de4`). Current RenGuard v2-alpha eval
+definitions and fixtures were **not** used to produce it.
+
+| Historical configuration | Assertion Pass Rate (micro) | Assertions | Mean Eval Pass Rate (macro) |
+|---|---:|---:|---:|
+| With Skill | **97.6%** | **40 / 41** | **97.92%** |
+| Without Skill | 68.3% | 28 / 41 | 70.42% |
+
+These values are provenance evidence for that recorded v1 run, not current RenGuard v2
+performance, multi-provider evidence, or a general security guarantee.
+
+Read [benchmark methodology](BENCHMARKING.md), the
+[public suite contract](evals/v2/README.md), and
+[schema/version documentation](schemas/README.md) for details.
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [`SKILL.md`](SKILL.md) | Core audit orchestration and report contract |
+| [Architecture](docs/architecture.md) | Components and source-of-truth boundaries |
+| [Threat Model](docs/threat-model.md) | Assets, actors, boundaries, threats, and non-goals |
+| [Usage](docs/usage.md) | Practical audit workflows and evidence checklist |
+| [Techniques](references/renguard-techniques.md) | Canonical 38-technique taxonomy |
+| [Risk scoring](references/risk-scoring.md) | Normative score model and confidence handling |
+| [Hardening](references/hardening-patterns.md) | Canonical 27-pattern defense catalog |
+| [RAG](references/rag-security.md) / [memory](references/memory-security.md) | Data, retrieval, persistence, and isolation boundaries |
+| [Tools](references/tool-security.md) / [MCP](references/mcp-security.md) / [agents](references/agentic-security.md) | Capability, protocol, delegation, and identity analysis |
+| [Multimodal](references/multimodal-security.md) / [output](references/output-security.md) | Media trust and downstream sink safety |
+| [Benchmarking](BENCHMARKING.md) | Execution, scoring, review, provenance, and safety methodology |
+| [Evaluation suite](evals/v2/README.md) | Public corpus structure and contribution rules |
+| [Schemas](schemas/README.md) | Structural contracts, registry, and compatibility policy |
+| [Contributing](CONTRIBUTING.md) | Engineering and evaluation contribution rules |
+| [Security policy](SECURITY.md) | Vulnerability-reporting guidance |
+
+## Repository structure
+
+```text
+prompt-injection-auditor/
+├── SKILL.md                 # Core RenGuard Skill
+├── references/              # Security specifications and catalogs
+├── docs/                    # Reader-oriented architecture, threat model, and usage
+├── examples/                # Human-readable educational audits
+├── evals/v2/                # Machine-readable public evaluation corpus
+├── scripts/                 # Validation and offline benchmark tooling
+├── schemas/                 # Draft 2020-12 artifact contracts
+├── tests/                   # Offline regression tests
+├── .github/workflows/       # Configured model-offline CI
+├── BENCHMARKING.md
+├── CONTRIBUTING.md
+└── SECURITY.md
+```
+
+The repository name remains `prompt-injection-auditor`; RenGuard is the current product
+identity. Historical names and model metadata remain unchanged where provenance requires
+them.
+
+## Development status and validation
+
+The taxonomy, scoring model, hardening framework, specialized references, public suite,
+offline runner, schemas, and CI workflow are implemented. Release validation and any
+decision to run an authorized live benchmark remain separate future work.
 
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
 performed on Python 3.12.14 only; Python 3.10, 3.11, and 3.13 remain target versions
-pending a successful GitHub-hosted matrix run. Treat the full range as targeted
-compatibility, not verified support. CI runs on pushes and pull requests with read-only
-repository permissions and no secrets. GitHub-hosted run status and branch protection
-depend on repository settings and are not claimed by local validation.
+pending a successful GitHub-hosted matrix run. Treat the range as targeted
+compatibility—not hosted-verified support. No hosted-CI PASS is claimed here.
 
-Formal Draft 2020-12 contracts and their independent semantic-version registry live in
-[`schemas/`](schemas/README.md). The stdlib checker implements only the keyword subset
-used by this repository and performs no network reference resolution; it is not a full
-general-purpose JSON Schema engine. Security, provenance, risk, and cross-file semantics
-remain in `scripts/validate_repo.py`.
+Run the same dependency-free quality gate configured for CI:
 
-The validator checks JSON parsing, unique IDs, fixture existence, benchmark/eval
-references, result arithmetic, pass rates, recomputed micro and macro summaries,
-historical source-commit provenance, known contradictory notes, documented headline
-values, important relative links, official framework IDs/names, unique RenGuard IDs,
-valid cross-references, the risk formula and bands, scoring dimensions, finding IDs,
-confidence/exploitability labels, hardening IDs/layers/strength/status/functions,
-worked-example score and remediation consistency, the complete v2 scenario contract,
-and the Phase 9 runner's versions, modules, adapters, leakage controls, artifact ignore,
-and subprocess safety. It recomputes corpus/category/kind/language counts, multi-turn
-and chain counts, exact scores, mutation references, and 38-technique coverage.
+```bash
+python scripts/check.py
+```
 
-These commands do **not** execute prompts against a live model and do not reproduce the
-historical benchmark. Repository validation is not model evaluation.
+It performs repository validation, unit tests, compilation, structural contract checks,
+and a deterministic temporary fixture smoke run without model credentials or live model
+calls.
 
-## What RenGuard Does Not Yet Do
+## Limitations
 
-RenGuard provides architecture- and evidence-aware audit guidance; specialized references
-do not turn it into a live scanner or penetration-testing service. It does not
-automatically perform image steganalysis, hidden-pixel or ultrasonic detection, deepfake
-detection, biometric verification, OCR accuracy certification, malware analysis, browser
-exploitation, live sink exploitation, full static source-code analysis, vector-database
-scanning, empirical embedding geometry analysis, or backend inspection. Those claims
-require relevant artifacts, tools, environments, and separately authorized testing.
+- Results depend on the architecture and evidence supplied; unknown facts reduce
+  confidence and can change risk.
+- RenGuard is an audit methodology, not runtime enforcement, and does not guarantee the
+  absence of vulnerabilities.
+- `PARTIAL` techniques still require specialized runtime or forensic evidence for
+  comprehensive analysis.
+- Provider, model, host, and framework behavior can differ.
+- The public suite may be known to evaluated models; private holdout evaluation remains
+  external.
+- No official v2 live benchmark exists.
+- Normalized multimodal descriptors do not test native-media perception.
+- Declarative output-sink scenarios do not execute production effects.
+- Architecture review does not automatically penetrate remote systems, verify a live
+  OAuth/IAM backend, inspect raw vector geometry, or prove that proposed controls exist.
 
-RenGuard also does not yet implement provider/framework profiles, SARIF, an
-in-repository private holdout, provider SDK integrations, or an official live v2
-benchmark result. It does not claim that all multimodal
-attacks are detected, that valid JSON/schema is safe or authorized, that Markdown is
-inert, that generated URLs or code are trusted, or that one sanitizer protects every
-sink. Current analysis is bounded by supplied evidence and host capabilities.
+## Contributing, security, and license
 
-The skill does not directly prove application code, model weights, network controls,
-tool implementations, output encoding, authorization, sandboxing, or stochastic attack
-success rates. Those controls require safe system-level verification. Phase 3 scoring,
-Phase 4 hardening, and Phase 5–7 specialized behavior have not been measured by the new
-public corpus because Phase 9 implementation used only synthetic fixture and replay
-verification, not a live external model benchmark.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) before changing stable IDs, schemas, evals, or
+benchmark contracts. Use synthetic data, keep tests model-offline, and run
+`python scripts/check.py`.
 
-## Contributing
+Security-reporting guidance is in [`SECURITY.md`](SECURITY.md). Do not publish secrets or
+sensitive exploit details in a public issue.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python scripts/check.py` before submitting a
-change. Changes to schemas, risk semantics, stable IDs, eval fixtures, serialized
-benchmark contracts, or provenance must be explicit and accompanied by appropriate
-version and regression updates.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+RenGuard is available under the [MIT License](LICENSE).

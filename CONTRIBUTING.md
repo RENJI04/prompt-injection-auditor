@@ -53,6 +53,17 @@ The schema validates storage shape. `scripts/validate_repo.py` separately valida
 taxonomy references, risk arithmetic, counts, provenance, and ground-truth consistency.
 Both layers must pass.
 
+## Documentation changes
+
+Reader-oriented documentation lives in `README.md` and `docs/`; normative audit behavior
+remains in `SKILL.md` and `references/`. Educational `examples/` are distinct from the
+machine-readable `evals/v2/` corpus. Keep relative links valid, commands runnable,
+historical v1 claims separate from v2 status, and synthetic fixture output clearly
+labeled as non-performance evidence.
+
+Useful starting points are `docs/architecture.md`, `docs/threat-model.md`, and
+`docs/usage.md`. Documentation tests are offline and must not fetch external links.
+
 ## Benchmark changes
 
 Keep adapters model-agnostic, network-gated, credential-safe, path-safe, and replayable.
