@@ -5,6 +5,22 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 10 CI, schemas, and repository engineering
+
+- Added Draft 2020-12 structural contracts for Phase 8 scenario, suite-manifest, and
+  mutation formats and Phase 9 run, response, score, summary, review, and pricing formats.
+- Added an independent semantic-version registry, compatibility policy, and safe local
+  `$ref` validation with no remote fetching or claim of complete JSON Schema support.
+- Added a dependency-free quality gate covering validation, tests, compilation,
+  schema/JSON checks, and a deterministic temporary FixtureAdapter smoke run.
+- Configured read-only, secret-free GitHub Actions CI with a Python 3.10–3.13 target
+  matrix on pushes and pull requests, with no live model execution or artifact upload.
+  Phase 10 local verification used Python 3.12.14; the hosted matrix has not yet run.
+- Added contributor/security guidance, editor normalization, artifact hygiene, version
+  checks, and schema/CI/repository regression coverage.
+- Preserved Phase 3–9 security and benchmark semantics, protected historical artifacts,
+  and all Phase 9 versions. No official v2 live benchmark result was produced.
+
 ### Phase 9 benchmark runner and statistical evaluation
 
 - Added an offline-first, standard-library benchmark runner with validate, plan, run,

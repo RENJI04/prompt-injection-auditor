@@ -18,6 +18,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote
 
+try:
+    from scripts.schema_tools import validate_repository_contracts
+except ModuleNotFoundError:  # Direct execution places scripts/ on sys.path.
+    from schema_tools import validate_repository_contracts
+
 
 ROUNDING_TOLERANCE = 0.000051
 CONFIGURATIONS = ("with_skill", "without_skill")
@@ -336,6 +341,7 @@ class ValidationResult:
     hardening_pattern_count: int = 0
     v2_metrics: dict[str, Any] = field(default_factory=dict)
     phase9_metrics: dict[str, Any] = field(default_factory=dict)
+    phase10_metrics: dict[str, Any] = field(default_factory=dict)
 
 
 def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
@@ -2616,6 +2622,103 @@ def _validate_phase9_runner(root: Path, errors: list[str]) -> dict[str, Any]:
     }
 
 
+def _validate_phase10_engineering(root: Path, errors: list[str]) -> dict[str, Any]:
+    schema_errors, schema_metrics = validate_repository_contracts(root)
+    errors.extend(f"SCHEMA: {error}" for error in schema_errors)
+
+    required_files = (
+        ".github/workflows/ci.yml",
+        ".editorconfig",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "schemas/README.md",
+        "schemas/versions.json",
+        "scripts/schema_tools.py",
+        "scripts/check.py",
+    )
+    for relative_name in required_files:
+        if not (root / relative_name).is_file():
+            errors.append(f"STRUCTURE: missing Phase 10 engineering file {relative_name}")
+
+    workflow = _read_text(root, ".github/workflows/ci.yml", errors) or ""
+    for marker in (
+        "push:", "pull_request:", "contents: read", "persist-credentials: false",
+        "python scripts/check.py", "timeout-minutes:",
+    ):
+        if marker not in workflow:
+            errors.append(f"REPOSITORY: CI workflow missing required marker {marker!r}")
+    for forbidden in (
+        "pull_request_target", "--execute-live", "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "MOONSHOT_API_KEY",
+        "permissions: write",
+    ):
+        if forbidden in workflow:
+            errors.append(f"SECURITY: CI workflow contains prohibited value {forbidden!r}")
+    if "actions/checkout@" not in workflow or "actions/setup-python@" not in workflow:
+        errors.append("REPOSITORY: CI must use official checkout and setup-python actions")
+
+    check_script = _read_text(root, "scripts/check.py", errors) or ""
+    for marker in ("sys.executable", "shell=False", "fixture", "schema_tools.py", "TemporaryDirectory"):
+        if marker not in check_script:
+            errors.append(f"REPOSITORY: scripts/check.py missing quality-gate marker {marker!r}")
+    for forbidden in ("shell=True", "--execute-live", "http://", "https://"):
+        if forbidden in check_script:
+            errors.append(f"SECURITY: scripts/check.py contains prohibited value {forbidden!r}")
+
+    gitignore = _read_text(root, ".gitignore", errors) or ""
+    for marker in ("benchmark-runs/", "__pycache__/", "*.py[cod]", ".pytest_cache/"):
+        if marker not in gitignore:
+            errors.append(f"REPOSITORY: .gitignore missing generated-artifact pattern {marker!r}")
+    for forbidden in ("evals/v2/", "schemas/", "tests/fixtures/"):
+        if re.search(rf"(?m)^{re.escape(forbidden)}$", gitignore):
+            errors.append(f"REPOSITORY: canonical path must not be ignored: {forbidden}")
+
+    phase10_paths = [
+        root / ".github/workflows/ci.yml",
+        root / "CONTRIBUTING.md",
+        root / "SECURITY.md",
+        root / "scripts/check.py",
+        root / "scripts/schema_tools.py",
+        *(root / "schemas").rglob("*"),
+    ]
+    credential_patterns = (
+        re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+        re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),
+        re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
+        re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+    )
+    for path in phase10_paths:
+        if path.is_file():
+            text = path.read_text(encoding="utf-8")
+            if any(pattern.search(text) for pattern in credential_patterns):
+                errors.append(f"SECURITY: possible credential in Phase 10 file {path.relative_to(root)}")
+    tooling_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (root / "scripts/check.py", root / "scripts/schema_tools.py")
+        if path.is_file()
+    )
+    for forbidden in ("urllib.request", "requests.", "httpx.", "socket.create_connection"):
+        if forbidden in tooling_text:
+            errors.append(f"SECURITY: standard quality tooling must not make network calls ({forbidden})")
+
+    portable_suffixes = {".py", ".md", ".json", ".yml", ".yaml"}
+    workspace_marker = "/" + "workspace/"
+    home_pattern = re.compile("/" + r"home/[^/<\s]+/")
+    for path in root.rglob("*"):
+        if not path.is_file() or ".git" in path.parts or path.suffix.lower() not in portable_suffixes:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if workspace_marker in text or re.search(r"[A-Za-z]:\\\\Users\\\\", text) or home_pattern.search(text):
+            errors.append(f"REPOSITORY: committed file contains an environment-specific path: {path.relative_to(root)}")
+
+    return {
+        "schema_count": schema_metrics.get("schemas", 0),
+        "schema_scenarios": schema_metrics.get("scenarios", 0),
+        "schema_mutations": schema_metrics.get("mutations", 0),
+        "ci_python_versions": 4,
+    }
+
+
 def validate_repository(root: Path) -> ValidationResult:
     root = root.resolve()
     validation = ValidationResult()
@@ -2649,6 +2752,7 @@ def validate_repository(root: Path) -> ValidationResult:
         root, REQUIRED_TECHNIQUE_IDS, validation.errors
     )
     validation.phase9_metrics = _validate_phase9_runner(root, validation.errors)
+    validation.phase10_metrics = _validate_phase10_engineering(root, validation.errors)
     for relative_name in (
         "README.md",
         "BENCHMARKING.md",
@@ -2699,6 +2803,12 @@ def main(argv: list[str] | None = None) -> int:
             f"- Phase 9 runner/scoring/schema: {result.phase9_metrics['runner_version']} / "
             f"{result.phase9_metrics['scoring_version']} / "
             f"{result.phase9_metrics['artifact_schema_version']}"
+        )
+    if result.phase10_metrics:
+        print(
+            f"- Phase 10 schemas/scenarios/mutations: {result.phase10_metrics['schema_count']} / "
+            f"{result.phase10_metrics['schema_scenarios']} / "
+            f"{result.phase10_metrics['schema_mutations']}"
         )
     for configuration in CONFIGURATIONS:
         metrics = result.metrics[configuration]

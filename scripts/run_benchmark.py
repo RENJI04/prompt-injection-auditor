@@ -17,6 +17,10 @@ from renguard_benchmark.mutations import load_mutation_recipes, make_runtime_cas
 from renguard_benchmark.reporting import compare_runs, render_summary_markdown
 from renguard_benchmark.review import apply_human_review, export_review_queue
 from renguard_benchmark.util import read_json, read_jsonl, sha256_file, sha256_json, write_json
+try:
+    from scripts.schema_tools import ensure_compatible_version, validate_value
+except ModuleNotFoundError:  # Direct execution places scripts/ on sys.path.
+    from schema_tools import ensure_compatible_version, validate_value
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +49,24 @@ def _pricing(path: Path | None) -> dict[str, Any] | None:
     if not isinstance(value, dict) or set(value) != required or not isinstance(value["model"], str) or not isinstance(value["currency"], str) or any(not isinstance(value[key], (int, float)) or isinstance(value[key], bool) or value[key] < 0 for key in ("input_per_million", "output_per_million")):
         raise ValueError("pricing file must contain model, non-negative input/output rates, and currency")
     return value
+
+
+def _suite_schema_errors(suite: Any) -> list[str]:
+    errors = [f"manifest: {item}" for item in validate_value(suite.manifest, "eval.suite_manifest")]
+    mutation_payload = read_json(suite.root / "mutations.json")
+    errors.extend(f"mutations: {item}" for item in validate_value(mutation_payload, "eval.mutations"))
+    for scenario in suite.scenarios:
+        errors.extend(f"{scenario.id}: {item}" for item in validate_value(scenario.canonical, "eval.scenario"))
+    return errors
+
+
+def _require_supported_run(run_dir: Path) -> None:
+    manifest = read_json(run_dir / "run-manifest.json")
+    ensure_compatible_version(
+        manifest.get("artifact_schema_version"),
+        ARTIFACT_SCHEMA_VERSION,
+        label="benchmark artifact schema",
+    )
 
 
 def _add_filters(parser: argparse.ArgumentParser) -> None:
@@ -81,7 +103,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command is None:
         parser.print_help(); return 0
     if args.command == "validate":
-        suite = load_suite(args.suite); print(json.dumps({"suite": suite.manifest["suite_name"], "version": suite.manifest["suite_version"], "scenarios": len(suite.scenarios), "suite_hash": suite.suite_hash, "runner_version": RUNNER_VERSION, "scoring_version": SCORING_VERSION, "artifact_schema_version": ARTIFACT_SCHEMA_VERSION}, indent=2)); return 0
+        suite = load_suite(args.suite)
+        schema_errors = _suite_schema_errors(suite)
+        if schema_errors:
+            raise ValueError("suite schema validation failed: " + "; ".join(schema_errors))
+        print(json.dumps({"suite": suite.manifest["suite_name"], "version": suite.manifest["suite_version"], "scenarios": len(suite.scenarios), "suite_hash": suite.suite_hash, "runner_version": RUNNER_VERSION, "scoring_version": SCORING_VERSION, "artifact_schema_version": ARTIFACT_SCHEMA_VERSION}, indent=2)); return 0
     if args.command == "plan":
         suite = load_suite(args.suite); selected = _selected(args, suite); conditions = ["RENGuard", "BASELINE"] if args.condition == "BOTH" else [args.condition]; keys = [f"{scenario.id}|{condition}|{index}" for scenario in selected for condition in conditions for index in range(1, args.runs + 1)]; print(json.dumps({"scenario_count": len(selected), "execution_count": len(keys), "execution_keys": keys}, indent=2)); return 0
     if args.command == "run":
@@ -107,17 +133,22 @@ def main(argv: list[str] | None = None) -> int:
         }
         run_dir = run_benchmark(repository_root=ROOT, suite=suite, cases=cases, conditions=conditions, adapter=adapter, output_base=args.output_dir, run_id=args.run_id, runs=args.runs, context_mode=args.context, concurrency=args.concurrency, retry_count=args.retries, execute_live=args.execute_live, resume=args.resume, filters=_filters(args), mutation_ids=args.mutation, parameters={"temperature": None, "top_p": None, "max_output_tokens": None, "seed": None, "timeout": args.timeout, "retry_policy": {"transport_only": True, "retries": args.retries}, "concurrency": args.concurrency, **adapter_configuration}, argv=sys.argv if argv is None else [sys.argv[0], *argv], private_holdout=args.suite.resolve() != DEFAULT_SUITE.resolve(), pricing=_pricing(args.pricing), minimal_artifacts=args.minimal_artifacts); print(run_dir); return 0
     if args.command in {"score", "summarize"}:
+        _require_supported_run(args.run_dir)
         judge = FixtureAdapter(args.judge_fixture_profile) if args.judge_fixture_profile else None
         if judge is not None and args.judge_relationship is None:
             raise ValueError("optional judge requires --judge-relationship")
         summary = rescore_run(args.run_dir.resolve(), load_suite(args.suite), _pricing(args.pricing), judge, args.judge_relationship or "NONE"); print(render_summary_markdown(summary) if args.command == "summarize" else json.dumps(summary, indent=2)); return 0
     if args.command == "compare":
+        _require_supported_run(args.run_a)
+        _require_supported_run(args.run_b)
         comparison = compare_runs(args.run_a.resolve(), args.run_b.resolve());
         if args.output: write_json(args.output, comparison)
         print(json.dumps(comparison, indent=2)); return 0
     if args.command == "export-review":
+        _require_supported_run(args.run_dir)
         output = args.output or args.run_dir / "review_queue.jsonl"; queue = export_review_queue(read_jsonl(args.run_dir / "scores.jsonl"), read_jsonl(args.run_dir / "responses.jsonl"), output); print(f"exported {len(queue)} records to {output}"); return 0
     if args.command == "apply-review":
+        _require_supported_run(args.run_dir)
         output = args.output or args.run_dir / "scores-reviewed.jsonl"; reviewed = apply_human_review(args.run_dir / "scores.jsonl", args.decisions, output); print(f"wrote {len(reviewed)} reviewed scores to {output}"); return 0
     return 2
 

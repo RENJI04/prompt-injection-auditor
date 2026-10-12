@@ -206,6 +206,10 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 ├── SKILL.md                          # Core RenGuard auditing skill
 ├── README.md
 ├── CHANGELOG.md
+├── CONTRIBUTING.md                  # Engineering and evaluation contribution rules
+├── SECURITY.md                      # Repository vulnerability-reporting guidance
+├── schemas/                         # Draft 2020-12 contracts and version registry
+├── .github/workflows/ci.yml         # Model-offline repository quality gate
 ├── references/
 │   ├── vulnerability-taxonomy.md     # Methodology and v1→v2 crosswalk
 │   ├── renguard-techniques.md        # Canonical 38-technique catalog
@@ -232,9 +236,12 @@ prompt-injection-auditor/             # Remote repository name remains unchanged
 ├── benchmarks/
 │   └── benchmark.json                # Canonical corrected historical v1 artifact
 ├── scripts/
-│   └── validate_repo.py              # Dependency-free consistency validator
+│   ├── validate_repo.py             # Dependency-free semantic validator
+│   ├── schema_tools.py              # Offline structural-contract validation
+│   └── check.py                     # Canonical local/CI quality gate
 └── tests/
-    └── test_validation.py            # Standard-library validator tests
+    ├── test_validation.py           # Semantic validator tests
+    └── test_benchmark.py            # Benchmark runner tests
 ```
 
 ## Historical Benchmark Results
@@ -335,9 +342,29 @@ The eval definitions, taxonomies, and historical results are declarative data. T
 deterministic validator uses only the Python standard library:
 
 ```sh
+python scripts/check.py
 python scripts/validate_repo.py
-python -m unittest discover -s tests
+python scripts/schema_tools.py check-repository
+python -m unittest discover -s tests -v
 ```
+
+`python scripts/check.py` is the canonical local and CI quality gate. It runs repository
+validation, unit tests, compilation, schema/JSON validation, and a small deterministic
+FixtureAdapter smoke run in a temporary directory. It never passes `--execute-live`,
+requires no provider credentials, and does not produce an official benchmark result.
+
+CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
+performed on Python 3.12.14 only; Python 3.10, 3.11, and 3.13 remain target versions
+pending a successful GitHub-hosted matrix run. Treat the full range as targeted
+compatibility, not verified support. CI runs on pushes and pull requests with read-only
+repository permissions and no secrets. GitHub-hosted run status and branch protection
+depend on repository settings and are not claimed by local validation.
+
+Formal Draft 2020-12 contracts and their independent semantic-version registry live in
+[`schemas/`](schemas/README.md). The stdlib checker implements only the keyword subset
+used by this repository and performs no network reference resolution; it is not a full
+general-purpose JSON Schema engine. Security, provenance, risk, and cross-file semantics
+remain in `scripts/validate_repo.py`.
 
 The validator checks JSON parsing, unique IDs, fixture existence, benchmark/eval
 references, result arithmetic, pass rates, recomputed micro and macro summaries,
@@ -379,13 +406,10 @@ verification, not a live external model benchmark.
 
 ## Contributing
 
-When changing the current taxonomy, patterns, evals, or benchmark artifact:
-
-1. Keep `SKILL.md` usable as the core product.
-2. Preserve historical benchmark provenance rather than rewriting model metadata.
-3. Add or update declarative eval data and synthetic fixtures as needed.
-4. Run `python scripts/validate_repo.py` and
-   `python -m unittest discover -s tests`.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Run `python scripts/check.py` before submitting a
+change. Changes to schemas, risk semantics, stable IDs, eval fixtures, serialized
+benchmark contracts, or provenance must be explicit and accompanied by appropriate
+version and regression updates.
 
 ## License
 

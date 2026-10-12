@@ -101,6 +101,12 @@ silently rewrite an existing case, add a supposed hidden case to this public dir
 or add benchmark-result fields. Run the repository validator and unit tests after every
 corpus change.
 
+The storage contract is documented by `schemas/eval/scenario.schema.json`, with suite
+and mutation contracts beside it and independent versions in `schemas/versions.json`.
+Schema validity does not replace semantic validation: stable IDs, recomputed counts,
+technique mappings, exact risk arithmetic, and ground-truth consistency remain enforced
+by `scripts/validate_repo.py`. Contributors should run `python scripts/check.py`.
+
 ## Phase 9 runner contract
 
 `scripts/run_benchmark.py` loads the scenario files in manifest order, validates stable

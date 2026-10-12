@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:eval:scenario:1.0.0",
+  "title": "RenGuard v2 public evaluation scenario",
+  "description": "Storage contract for one canonical public scenario. Evaluator fields are never implied to be runtime-model inputs.",
+  "type": "object",
+  "required": [
+    "id", "title", "category", "kind", "description", "language",
+    "target_profile", "input", "expected", "agentic_applicable",
+    "required_references", "mutation_eligible", "mutation_ids", "tags",
+    "public_visibility", "notes"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^RG-EVAL-V2-[0-9]{3}$"},
+    "title": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+    "kind": {"enum": ["ATTACK", "CLEAN", "BOUNDARY", "CHAIN"]},
+    "description": {"type": "string", "minLength": 1},
+    "language": {
+      "oneOf": [
+        {"type": "string", "minLength": 2},
+        {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 2}}
+      ]
+    },
+    "target_profile": {"$ref": "#/$defs/targetProfile"},
+    "input": {"$ref": "#/$defs/input"},
+    "expected": {"$ref": "#/$defs/expectation"},
+    "turns": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/turn"}},
+    "artifacts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifact"}},
+    "architecture": {"$ref": "#/$defs/architecture"},
+    "preconditions": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "array", "items": {"type": "string"}}
+      ]
+    },
+    "agentic_applicable": {"type": "boolean"},
+    "required_references": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^references/[A-Za-z0-9._-]+\\.md$"}},
+    "mutation_eligible": {"type": "boolean"},
+    "mutation_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^RG-MUT-[0-9]{3}$"}},
+    "tags": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "public_visibility": {"const": "PUBLIC"},
+    "notes": {"type": "string"},
+    "input_representation": {"type": "string"},
+    "native_media_required_for_full_benchmark": {"type": "boolean"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stringArray": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "targetProfile": {
+      "type": "object",
+      "required": ["application_type", "model_role", "rag", "memory", "tools", "mcp", "agentic", "multimodal", "output_sink", "tenant_model", "authentication", "authorization", "network", "human_approval", "persistent_state"],
+      "properties": {
+        "application_type": {"type": "string"},
+        "model_role": {"type": "string"},
+        "rag": {"type": "boolean"},
+        "memory": {"type": "boolean"},
+        "tools": {"type": "boolean"},
+        "mcp": {"type": "boolean"},
+        "agentic": {"type": "boolean"},
+        "multimodal": {"type": "boolean"},
+        "output_sink": {"oneOf": [{"type": "boolean"}, {"type": "string"}]},
+        "tenant_model": {"type": "string"},
+        "authentication": {"type": "string"},
+        "authorization": {"type": "string"},
+        "network": {"type": "string"},
+        "human_approval": {"type": "string"},
+        "persistent_state": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": ["type", "content"],
+      "properties": {"type": {"type": "string"}, "content": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "turn": {
+      "type": "object",
+      "required": ["role", "content"],
+      "properties": {"role": {"type": "string"}, "content": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["modality", "provenance"],
+      "properties": {
+        "modality": {"type": "string"},
+        "provenance": {"type": "string"},
+        "representation": {"type": "string"},
+        "visible_text": {"type": "string"},
+        "ocr_text": {"type": "string"},
+        "transcript": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "architecture": {
+      "type": "object",
+      "properties": {
+        "ordered_attack_chain": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+        "sink": {
+          "type": "object",
+          "required": ["type", "declarative_only", "executed_during_phase8"],
+          "properties": {
+            "type": {"type": "string"},
+            "declarative_only": {"type": "boolean"},
+            "executed_during_phase8": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "dimensionMap": {
+      "type": "object",
+      "required": ["E", "P", "H", "V", "T", "D", "A", "S", "B", "R", "X", "G"],
+      "properties": {
+        "E": {"type": "integer", "minimum": 0, "maximum": 4},
+        "P": {"type": "integer", "minimum": 0, "maximum": 4},
+        "H": {"type": "integer", "minimum": 0, "maximum": 4},
+        "V": {"type": "integer", "minimum": 0, "maximum": 4},
+        "T": {"type": "integer", "minimum": 0, "maximum": 4},
+        "D": {"type": "integer", "minimum": 0, "maximum": 4},
+        "A": {"type": "integer", "minimum": 0, "maximum": 4},
+        "S": {"type": "integer", "minimum": 0, "maximum": 4},
+        "B": {"type": "integer", "minimum": 0, "maximum": 4},
+        "R": {"type": "integer", "minimum": 0, "maximum": 4},
+        "X": {"type": "integer", "minimum": 0, "maximum": 4},
+        "G": {"type": "integer", "minimum": 0, "maximum": 4}
+      },
+      "additionalProperties": false
+    },
+    "evidenceMap": {
+      "type": "object",
+      "required": ["E", "P", "H", "V", "T", "D", "A", "S", "B", "R", "X", "G"],
+      "properties": {
+        "E": {"type": "string"}, "P": {"type": "string"}, "H": {"type": "string"},
+        "V": {"type": "string"}, "T": {"type": "string"}, "D": {"type": "string"},
+        "A": {"type": "string"}, "S": {"type": "string"}, "B": {"type": "string"},
+        "R": {"type": "string"}, "X": {"type": "string"}, "G": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "riskExpectation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["mode", "dimensions", "score", "severity", "evidence_basis"],
+          "properties": {
+            "mode": {"const": "EXACT"},
+            "dimensions": {"$ref": "#/$defs/dimensionMap"},
+            "score": {"type": "number", "minimum": 0, "maximum": 10},
+            "severity": {"enum": ["INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+            "evidence_basis": {"$ref": "#/$defs/evidenceMap"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["mode", "severity"],
+          "properties": {
+            "mode": {"const": "BAND"},
+            "severity": {"enum": ["INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL"]}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["mode"],
+          "properties": {"mode": {"const": "NOT_ASSERTED"}},
+          "additionalProperties": false
+        }
+      ]
+    },
+    "expectation": {
+      "type": "object",
+      "required": ["must_detect", "may_detect", "must_not_detect", "expected_primary_technique", "expected_secondary_techniques", "expected_owasp_llm", "expected_owasp_agentic", "expected_confidence", "expected_risk", "required_control_layers", "required_hardening_patterns", "required_security_properties", "prohibited_claims", "secret_redaction_expectation", "assertion_groups"],
+      "properties": {
+        "must_detect": {"$ref": "#/$defs/stringArray"},
+        "may_detect": {"$ref": "#/$defs/stringArray"},
+        "must_not_detect": {"$ref": "#/$defs/stringArray"},
+        "expected_primary_technique": {"type": ["string", "null"]},
+        "expected_secondary_techniques": {"$ref": "#/$defs/stringArray"},
+        "expected_owasp_llm": {"$ref": "#/$defs/stringArray"},
+        "expected_owasp_agentic": {"$ref": "#/$defs/stringArray"},
+        "expected_confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+        "expected_risk": {"$ref": "#/$defs/riskExpectation"},
+        "required_control_layers": {"$ref": "#/$defs/stringArray"},
+        "required_hardening_patterns": {"$ref": "#/$defs/stringArray"},
+        "required_security_properties": {"$ref": "#/$defs/stringArray"},
+        "prohibited_claims": {"$ref": "#/$defs/stringArray"},
+        "secret_redaction_expectation": {"enum": ["NONE", "REDACT", "REDACT_AND_ROTATE"]},
+        "assertion_groups": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["SECURITY_DETECTION", "TECHNIQUE_MAPPING", "FRAMEWORK_MAPPING", "RISK", "CONFIDENCE", "REMEDIATION", "REDACTION", "FORMAT"]}
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

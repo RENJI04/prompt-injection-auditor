@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:response-record:1.0.0",
+  "title": "RenGuard benchmark response record",
+  "description": "One execution observation. Artifact version is inherited from the containing run manifest.",
+  "type": "object",
+  "required": ["execution_key", "runtime_id", "scenario_id", "condition", "run_index", "mutation_id", "status", "attempts", "transport_errors", "prompt_hash", "skill_hash", "context_hash", "context_files", "context_file_hashes"],
+  "properties": {
+    "execution_key": {"type": "string", "minLength": 1},
+    "runtime_id": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": "string", "pattern": "^RG-EVAL-V2-[0-9]{3}$"},
+    "condition": {"enum": ["RENGuard", "BASELINE"]},
+    "run_index": {"type": "integer", "minimum": 1},
+    "mutation_id": {"type": ["string", "null"], "pattern": "^RG-MUT-[0-9]{3}$"},
+    "status": {"enum": ["COMPLETED", "FAILED", "TRANSPORT_FAILED"]},
+    "attempts": {"type": "integer", "minimum": 1},
+    "transport_errors": {"type": "array", "items": {"type": "string"}},
+    "adapter": {"type": "string"},
+    "provider": {"type": "string"},
+    "model": {"type": "string"},
+    "latency_seconds": {"type": ["number", "null"], "minimum": 0},
+    "usage": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "properties": {
+            "input_tokens": {"type": "integer", "minimum": 0},
+            "output_tokens": {"type": "integer", "minimum": 0},
+            "total_tokens": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "prompt_hash": {"$ref": "#/$defs/sha256"},
+    "skill_hash": {"$ref": "#/$defs/sha256"},
+    "context_hash": {"$ref": "#/$defs/sha256"},
+    "context_files": {"type": "array", "items": {"type": "string"}},
+    "context_file_hashes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+    "raw_response": {"type": "string"},
+    "raw_response_hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": false,
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

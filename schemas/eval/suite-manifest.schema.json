@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:eval:suite-manifest:1.0.0",
+  "title": "RenGuard v2 public suite manifest",
+  "description": "Structural contract for evals/v2/manifest.json; Python validation recomputes all counts and coverage.",
+  "type": "object",
+  "required": ["suite_name", "suite_version", "created_for_phase", "source_checkpoint", "public_visibility", "historical_v1_separation", "scenario_files", "scenario_count", "category_counts", "kind_counts", "language_counts", "multi_turn_count", "attack_chain_count", "exact_score_count", "non_english_or_mixed_count", "technique_coverage_count", "technique_coverage", "mutation_count", "mutation_file", "holdout_policy", "results_status"],
+  "properties": {
+    "suite_name": {"const": "RenGuard v2 Public Evaluation Suite"},
+    "suite_version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "created_for_phase": {"const": 8},
+    "source_checkpoint": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "public_visibility": {"const": "PUBLIC"},
+    "historical_v1_separation": {"type": "string", "minLength": 1},
+    "scenario_files": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z0-9-]+\\.json$"}},
+    "scenario_count": {"type": "integer", "minimum": 1},
+    "category_counts": {"$ref": "#/$defs/countMap"},
+    "kind_counts": {"$ref": "#/$defs/countMap"},
+    "language_counts": {"$ref": "#/$defs/countMap"},
+    "multi_turn_count": {"type": "integer", "minimum": 0},
+    "attack_chain_count": {"type": "integer", "minimum": 0},
+    "exact_score_count": {"type": "integer", "minimum": 0},
+    "non_english_or_mixed_count": {"type": "integer", "minimum": 0},
+    "technique_coverage_count": {"type": "integer", "minimum": 0},
+    "technique_coverage": {"type": "array", "items": {"$ref": "#/$defs/coverage"}},
+    "mutation_count": {"type": "integer", "minimum": 0},
+    "mutation_file": {"const": "mutations.json"},
+    "holdout_policy": {"type": "string", "minLength": 1},
+    "results_status": {"const": "TEST_DEFINITIONS_ONLY_NO_MODEL_RESULTS"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "countMap": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "integer", "minimum": 0}},
+    "coverage": {
+      "type": "object",
+      "required": ["technique_id", "coverage_status", "positive_scenario_count", "boundary_clean_scenario_count", "scenario_ids"],
+      "properties": {
+        "technique_id": {"type": "string", "pattern": "^RG-[A-Z]{2}-[0-9]{3}$"},
+        "coverage_status": {"enum": ["CORE", "PARTIAL", "PLANNED"]},
+        "positive_scenario_count": {"type": "integer", "minimum": 0},
+        "boundary_clean_scenario_count": {"type": "integer", "minimum": 0},
+        "scenario_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^RG-EVAL-V2-[0-9]{3}$"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

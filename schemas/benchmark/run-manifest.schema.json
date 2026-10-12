@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:run-manifest:1.0.0",
+  "title": "RenGuard benchmark run manifest",
+  "description": "Secret-free provenance and configuration for one benchmark run.",
+  "type": "object",
+  "required": ["artifact_schema_version", "runner_version", "scoring_version", "run_id", "status", "started_at", "ended_at", "git_commit", "suite", "condition", "target", "judge", "repeats", "filters", "mutation_policy", "model_parameters", "contexts", "python_version", "platform", "renguard_source", "benchmark_configuration_hash", "pricing_config_hash", "command_line", "artifact_mode"],
+  "properties": {
+    "artifact_schema_version": {"const": "0.1.0"},
+    "runner_version": {"const": "0.1.0"},
+    "scoring_version": {"const": "0.1.0"},
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "status": {"enum": ["RUNNING", "COMPLETED", "COMPLETED_WITH_ERRORS"]},
+    "started_at": {"type": "string", "minLength": 1},
+    "ended_at": {"type": ["string", "null"]},
+    "git_commit": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "suite": {"$ref": "#/$defs/suite"},
+    "condition": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["RENGuard", "BASELINE"]}},
+    "target": {"$ref": "#/$defs/adapter"},
+    "judge": {"$ref": "#/$defs/judge"},
+    "repeats": {"type": "integer", "minimum": 1},
+    "filters": {"type": "object", "additionalProperties": true},
+    "mutation_policy": {
+      "type": "object",
+      "required": ["selected", "default"],
+      "properties": {
+        "selected": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^RG-MUT-[0-9]{3}$"}},
+        "default": {"const": "none"}
+      },
+      "additionalProperties": false
+    },
+    "model_parameters": {"type": "object", "additionalProperties": true},
+    "contexts": {"type": "array", "items": {"$ref": "#/$defs/context"}},
+    "python_version": {"type": "string", "minLength": 1},
+    "platform": {"type": "string", "minLength": 1},
+    "renguard_source": {
+      "type": "object",
+      "required": ["skill_hash"],
+      "properties": {"skill_hash": {"$ref": "#/$defs/sha256"}},
+      "additionalProperties": false
+    },
+    "benchmark_configuration_hash": {"$ref": "#/$defs/sha256"},
+    "pricing_config_hash": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "command_line": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "artifact_mode": {"enum": ["REPRODUCIBLE_RAW_RESPONSES", "MINIMAL_NO_RAW_RESPONSES"]}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hashMap": {"type": "object", "additionalProperties": {"$ref": "#/$defs/sha256"}},
+    "suite": {
+      "type": "object",
+      "required": ["name", "version", "content_hash", "file_hashes", "private_holdout"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+        "content_hash": {"$ref": "#/$defs/sha256"},
+        "file_hashes": {"$ref": "#/$defs/hashMap"},
+        "private_holdout": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "adapter": {
+      "type": "object",
+      "required": ["adapter", "provider", "model"],
+      "properties": {
+        "adapter": {"type": "string", "minLength": 1},
+        "provider": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "judge": {
+      "type": "object",
+      "required": ["relationship"],
+      "properties": {
+        "relationship": {"enum": ["NONE", "SAME_MODEL", "SAME_PROVIDER_DIFFERENT_MODEL", "DIFFERENT_PROVIDER", "HUMAN"]},
+        "adapter": {"type": "string"},
+        "provider": {"type": "string"},
+        "model": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "required": ["mode", "files", "file_hashes", "assembled_hash"],
+      "properties": {
+        "mode": {"enum": ["NONE", "CORE", "CONDITIONAL", "FULL"]},
+        "files": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "file_hashes": {"$ref": "#/$defs/hashMap"},
+        "assembled_hash": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:pricing:1.0.0",
+  "title": "User-supplied benchmark pricing",
+  "description": "Optional user metadata for cost calculation; the repository contains no authoritative provider prices.",
+  "type": "object",
+  "required": ["model", "input_per_million", "output_per_million", "currency"],
+  "properties": {
+    "model": {"type": "string"},
+    "input_per_million": {"type": "number", "minimum": 0},
+    "output_per_million": {"type": "number", "minimum": 0},
+    "currency": {"type": "string"}
+  },
+  "additionalProperties": false
+}

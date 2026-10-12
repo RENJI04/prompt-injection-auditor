@@ -131,6 +131,21 @@ differences, metric deltas, and paired scenario/run outcomes. RenGuard-versus-ba
 comparisons should use the same model, scenario keys, and parameters. Deltas do not by
 themselves establish causality or statistical significance.
 
+## Schemas, compatibility, and engineering checks
+
+Draft 2020-12 contracts under `schemas/benchmark/` describe run manifests, response and
+score records, summaries, review records, and optional user pricing. Response/score JSONL
+records inherit artifact version `0.1.0` from their containing run manifest. Unknown
+major versions—and any unregistered pre-1.0 artifact version—fail closed. Schema versions
+are separately registered in `schemas/versions.json`; Phase 10 did not change runner,
+scoring, or artifact versions.
+
+`python scripts/schema_tools.py validate-run benchmark-runs/<run-id>` validates a run
+without fetching remote `$ref` targets. `python scripts/check.py` runs the same offline
+quality gates used by CI, including a small deterministic fixture smoke test in temporary
+storage. CI requires no provider secrets, never passes `--execute-live`, and does not
+upload raw benchmark responses.
+
 ## Official result policy and limitations
 
 An official result must name the Git commit, suite hash/version, runner/scoring/schema
