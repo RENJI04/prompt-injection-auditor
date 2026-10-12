@@ -68,6 +68,43 @@ class RepositoryValidationTests(unittest.TestCase):
     def test_repository_fixture_is_valid(self) -> None:
         self.assertEqual([], validate_repository(self.root).errors)
 
+    def test_rejects_missing_phase9_runner_entry_point(self) -> None:
+        (self.root / "scripts/run_benchmark.py").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("Phase 9 entry point is missing" in error for error in errors))
+
+    def test_rejects_missing_phase9_module(self) -> None:
+        (self.root / "scripts/renguard_benchmark/loader.py").unlink()
+        errors = validate_repository(self.root).errors
+        self.assertTrue(
+            any("loader.py" in error and "required Phase 9 module" in error for error in errors)
+        )
+
+    def test_rejects_phase9_version_mutation(self) -> None:
+        errors = self._errors_after_text_replacement(
+            "scripts/renguard_benchmark/__init__.py",
+            'SCORING_VERSION = "0.1.0"',
+            'SCORING_VERSION = "9.9.9"',
+        )
+        self.assertTrue(any("SCORING_VERSION must be 0.1.0" in error for error in errors))
+
+    def test_rejects_phase9_shell_true(self) -> None:
+        path = self.root / "scripts/renguard_benchmark/adapters.py"
+        path.write_text(
+            path.read_text(encoding="utf-8") + "\n# shell=True\n",
+            encoding="utf-8",
+        )
+        errors = validate_repository(self.root).errors
+        self.assertTrue(any("shell=True is prohibited" in error for error in errors))
+
+    def test_rejects_missing_benchmark_artifact_ignore(self) -> None:
+        errors = self._errors_after_text_replacement(
+            ".gitignore", "benchmark-runs/\n", ""
+        )
+        self.assertTrue(
+            any("benchmark-runs/ directory must be ignored" in error for error in errors)
+        )
+
     def test_rejects_invalid_pass_counts(self) -> None:
         errors = self._errors_after_benchmark_change(
             lambda data: data["runs"][0]["result"].__setitem__("passed", 7)

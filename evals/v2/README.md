@@ -9,8 +9,9 @@ prove that RenGuard or any model passes them.
 The legacy v2-alpha definitions in `evals/evals.json` and `evals/files/` remain
 unchanged. They are not the source corpus for the provenance-preserved 40/41 v1 result;
 that exact historical corpus is tied to source commit `c2e8de4`. Neither the historical
-result nor the legacy definitions are RenGuard v2 Phase 8 results. Live execution and
-measurement are deferred to Phase 9.
+result nor the legacy definitions are RenGuard v2 Phase 8 results. The Phase 9 runner
+now consumes this corpus, but implementation validation produced no official live model
+result.
 
 ## Layout
 
@@ -76,7 +77,9 @@ and benign controls rather than literal translations of one template.
 
 Mutation recipes cover encoding, Unicode, wrappers, fake authority labels, contextual
 sandwiching, multilingual paraphrase, delayed triggers, and bounded context padding.
-Phase 9 may materialize eligible variants using harmless synthetic markers only.
+Phase 9 can materialize explicitly selected eligible variants using harmless synthetic
+markers only. It never creates combinations by default; multilingual paraphrase,
+homoglyph substitution, and delayed triggers are not automatically materialized.
 The public corpus uses placeholders such as `<TEST_SECRET>`, `<TEST_COMMAND>`, and
 `<ATTACKER_DESTINATION>`, plus `example.invalid`; it includes no live credentials,
 destructive commands, malware, or real exfiltration infrastructure.
@@ -98,10 +101,30 @@ silently rewrite an existing case, add a supposed hidden case to this public dir
 or add benchmark-result fields. Run the repository validator and unit tests after every
 corpus change.
 
-## Limitations and Phase 9 relationship
+## Phase 9 runner contract
+
+`scripts/run_benchmark.py` loads the scenario files in manifest order, validates stable
+IDs, then sorts IDs deterministically. Its prompt builder exposes only runtime facts
+such as input, turns, artifacts, architecture, and target profile. It excludes scenario
+ID, kind, expected results, technique mappings, risk/confidence truth, notes, assertion
+groups, and mutation eligibility. Multi-turn role and order are preserved.
+
+The `RENGuard` condition loads `SKILL.md`, core references, and architecture-selected
+specialized references. The `BASELINE` condition receives the same generic audit task,
+scenario input, architecture, and neutral output contract without RenGuard guidance.
+Technique IDs are optional for baseline responses; binary detection is scored from the
+material-vulnerability classification rather than taxonomy vocabulary.
+
+Fixture runs are explicitly synthetic engineering tests. Replay rescoring contacts no
+model. Generated manifests hash the suite, context files, assembled contexts, pricing
+configuration when supplied, and record runner/scoring/artifact versions. Runtime
+artifacts belong under ignored `benchmark-runs/`, not in this corpus.
+
+## Limitations
 
 This is a public regression corpus, so systems can eventually see and overfit it. It
 does not measure unseen-case generalization, native media perception, live tool or sink
-behavior, stochastic variance, latency, cost, or cross-model performance. Phase 9 may
-implement a runner, deterministic evaluators, independent judging, human review, and
-statistical reporting. None of those capabilities or results exists here.
+behavior, or unseen-case generalization. The Phase 9 runner can measure repeated-run
+behavior, latency/usage when an adapter exposes it, deterministic assertions, optional
+narrow judging, human review, and statistical summaries. Those capabilities do not
+turn corpus coverage into empirical performance; no official live result exists.

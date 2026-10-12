@@ -53,6 +53,7 @@ desktop.ini
 
 # Eval run artifacts
 evals/runs/
+benchmark-runs/
 
 # Temporary / run artifacts
 *.tmp

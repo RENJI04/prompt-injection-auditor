@@ -295,6 +295,40 @@ share a contract, but actual private cases must be stored outside Git. See the
 [suite documentation](evals/v2/README.md) and
 [manifest](evals/v2/manifest.json).
 
+## Benchmarking
+
+Phase 9 adds a standard-library, offline-first runner for the 72-scenario public suite.
+It supports deterministic loading and filters, `RENGuard` and fair `BASELINE`
+conditions, repeated runs, fixture and replay workflows, assertion-group scoring,
+confusion matrices, precision/recall/F1, Wilson intervals, risk and confidence checks,
+stability, human review, provenance hashes, and compatible-run comparison.
+
+Safe commands do not contact a model:
+
+```sh
+python scripts/run_benchmark.py --help
+python scripts/run_benchmark.py validate
+python scripts/run_benchmark.py plan --condition BOTH --runs 3
+python scripts/run_benchmark.py run --adapter fixture --ids RG-EVAL-V2-001,RG-EVAL-V2-061
+python scripts/run_benchmark.py score --run-dir benchmark-runs/<run-id>
+python scripts/run_benchmark.py summarize --run-dir benchmark-runs/<run-id>
+```
+
+`FixtureAdapter` is test-only, while `ReplayAdapter` rescores captured responses without
+another inference call. `CommandAdapter` uses an argument array and stdin, bounds
+stdout/stderr, and requires the explicit `--execute-live` gate. It can wrap a local
+model or an externally configured client, but the repository provides no provider SDK
+and stores no credentials. Repeats preserve each scenario-run observation. Optional
+cost calculation requires both returned token usage and a user-supplied pricing file;
+the repository does not hardcode provider prices.
+
+External private suites may be supplied with `--suite` and remain outside Git. Public
+suite results carry contamination risk and do not establish unseen-case generalization.
+Normalized multimodal cases do not test native perception, and declarative sink cases
+do not execute exploits. Phase 9 produced no official v2 live result. See
+[Benchmarking RenGuard](BENCHMARKING.md) for the artifact, scoring, review, safety, and
+comparison contracts.
+
 ## Repository Validation
 
 The eval definitions, taxonomies, and historical results are declarative data. The
@@ -311,13 +345,13 @@ historical source-commit provenance, known contradictory notes, documented headl
 values, important relative links, official framework IDs/names, unique RenGuard IDs,
 valid cross-references, the risk formula and bands, scoring dimensions, finding IDs,
 confidence/exploitability labels, hardening IDs/layers/strength/status/functions,
-worked-example score and remediation consistency, and the complete v2 scenario contract.
-For Phase 8 it recomputes corpus/category/kind/language counts, multi-turn and chain
-counts, exact scores, mutation references, and 38-technique coverage from source files.
+worked-example score and remediation consistency, the complete v2 scenario contract,
+and the Phase 9 runner's versions, modules, adapters, leakage controls, artifact ignore,
+and subprocess safety. It recomputes corpus/category/kind/language counts, multi-turn
+and chain counts, exact scores, mutation references, and 38-technique coverage.
 
 These commands do **not** execute prompts against a live model and do not reproduce the
-historical benchmark. A live model evaluation and benchmark runner is deferred to a
-later phase.
+historical benchmark. Repository validation is not model evaluation.
 
 ## What RenGuard Does Not Yet Do
 
@@ -329,9 +363,9 @@ exploitation, live sink exploitation, full static source-code analysis, vector-d
 scanning, empirical embedding geometry analysis, or backend inspection. Those claims
 require relevant artifacts, tools, environments, and separately authorized testing.
 
-RenGuard also does not yet implement provider/framework profiles, SARIF, a live model
-runner, an in-repository private holdout, cross-model benchmarks, or statistical
-confidence intervals. It does not claim that all multimodal
+RenGuard also does not yet implement provider/framework profiles, SARIF, an
+in-repository private holdout, provider SDK integrations, or an official live v2
+benchmark result. It does not claim that all multimodal
 attacks are detected, that valid JSON/schema is safe or authorized, that Markdown is
 inert, that generated URLs or code are trusted, or that one sanitizer protects every
 sink. Current analysis is bounded by supplied evidence and host capabilities.
@@ -340,7 +374,8 @@ The skill does not directly prove application code, model weights, network contr
 tool implementations, output encoding, authorization, sandboxing, or stochastic attack
 success rates. Those controls require safe system-level verification. Phase 3 scoring,
 Phase 4 hardening, and Phase 5–7 specialized behavior have not been measured by the new
-public corpus because Phase 8 performed no live model benchmark.
+public corpus because Phase 9 implementation used only synthetic fixture and replay
+verification, not a live external model benchmark.
 
 ## Contributing
 

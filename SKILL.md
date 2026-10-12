@@ -85,8 +85,8 @@ specialized analysis.
 
 The public RenGuard v2 evaluation definitions live separately under `evals/v2/` and do
 not participate in normal audits. The legacy v1 benchmark corpus and its historical
-result remain provenance-separated. Do not claim v2 benchmark performance unless a
-future authorized Phase 9 execution produces actual model results.
+result remain provenance-separated. Benchmark results must come from actual runner
+executions, not corpus validation. No official v2 live result currently exists.
 
 ## Behavior Protocol
 

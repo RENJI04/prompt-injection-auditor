@@ -5,6 +5,29 @@ no final v2.0.0 release is declared by this file.
 
 ## Unreleased — RenGuard 2.0.0-alpha.1
 
+### Phase 9 benchmark runner and statistical evaluation
+
+- Added an offline-first, standard-library benchmark runner with validate, plan, run,
+  score, summarize, compare, review-export, and review-apply commands.
+- Added immutable scenario loading/filtering, strict evaluator-ground-truth isolation,
+  deterministic RenGuard context routing/hashing, and fair RenGuard/baseline conditions.
+- Added fixture, replay, and bounded argument-array command adapters with explicit live
+  execution gating, transport-only retries, conservative concurrency, and resume keys.
+- Added explicit parser and assertion states, deterministic security/technique/framework/
+  risk/confidence/remediation/redaction scoring, and immutable machine/judge/human trails.
+- Added confusion matrices, precision/recall/F1/specificity/FPR/FNR, Wilson intervals,
+  clean and boundary reports, risk MAE, subgroup sample warnings, and run stability.
+- Added safe deterministic mutation materialization, public/private suite handling,
+  provenance manifests, JSONL replay artifacts, Markdown/JSON reports, and paired run
+  comparison without causal-significance claims.
+- Added optional user-supplied pricing support without embedded provider prices; token
+  and cost fields remain unavailable when adapters do not return usage.
+- Added focused benchmark documentation, deterministic synthetic fixtures, runner
+  validation, and substantive offline unit/workflow tests.
+- Preserved Phase 3–8 security architecture and the historical v1 corpus/result. No
+  official RenGuard v2 performance result was produced, and no live external model was
+  contacted.
+
 ### Phase 8 advanced evaluation suite
 
 - Added a separate `evals/v2/` public corpus with 72 stable-ID security-reasoning

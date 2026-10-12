@@ -9,6 +9,7 @@ import json
 import math
 import re
 import statistics
+import subprocess
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
@@ -118,6 +119,14 @@ PHASE7_COVERAGE_STATUSES = {
 }
 PHASE7_COVERAGE_COUNTS = {"CORE": 33, "PARTIAL": 5, "PLANNED": 0}
 PHASE8_SOURCE_CHECKPOINT = "9bb240491a84dd519c931565929bd053e0ffa47d"
+PHASE9_RUNNER_VERSION = "0.1.0"
+PHASE9_SCORING_VERSION = "0.1.0"
+PHASE9_ARTIFACT_SCHEMA_VERSION = "0.1.0"
+PHASE9_MODULES = (
+    "__init__.py", "models.py", "loader.py", "prompt_builder.py", "adapters.py",
+    "execution.py", "parser.py", "evaluator.py", "mutations.py", "metrics.py",
+    "statistics.py", "reporting.py", "review.py", "provenance.py", "util.py",
+)
 V2_SUITE_NAME = "RenGuard v2 Public Evaluation Suite"
 V2_SUITE_VERSION = "0.1.0"
 V2_SCENARIO_ID_PATTERN = re.compile(r"RG-EVAL-V2-[0-9]{3}")
@@ -326,6 +335,7 @@ class ValidationResult:
     technique_count: int = 0
     hardening_pattern_count: int = 0
     v2_metrics: dict[str, Any] = field(default_factory=dict)
+    phase9_metrics: dict[str, Any] = field(default_factory=dict)
 
 
 def _load_json(path: Path, label: str, errors: list[str]) -> Any | None:
@@ -2514,6 +2524,98 @@ def _validate_v2_suite(
     }
 
 
+def _validate_phase9_runner(root: Path, errors: list[str]) -> dict[str, Any]:
+    runner = root / "scripts" / "run_benchmark.py"
+    package = root / "scripts" / "renguard_benchmark"
+    if not runner.is_file():
+        errors.append("scripts/run_benchmark.py: Phase 9 entry point is missing")
+    for filename in PHASE9_MODULES:
+        if not (package / filename).is_file():
+            errors.append(f"scripts/renguard_benchmark/{filename}: required Phase 9 module is missing")
+
+    init_text = _read_text(root, "scripts/renguard_benchmark/__init__.py", errors) or ""
+    for name, version in (
+        ("RUNNER_VERSION", PHASE9_RUNNER_VERSION),
+        ("SCORING_VERSION", PHASE9_SCORING_VERSION),
+        ("ARTIFACT_SCHEMA_VERSION", PHASE9_ARTIFACT_SCHEMA_VERSION),
+    ):
+        if f'{name} = "{version}"' not in init_text:
+            errors.append(f"scripts/renguard_benchmark/__init__.py: {name} must be {version}")
+
+    adapter_text = _read_text(root, "scripts/renguard_benchmark/adapters.py", errors) or ""
+    for class_name in ("FixtureAdapter", "ReplayAdapter", "CommandAdapter"):
+        if f"class {class_name}" not in adapter_text:
+            errors.append(f"scripts/renguard_benchmark/adapters.py: missing {class_name}")
+    for marker in ("shell=False", "stdin=subprocess.PIPE", "max_output_bytes", "process.kill()"):
+        if marker not in adapter_text:
+            errors.append(f"scripts/renguard_benchmark/adapters.py: missing command safety marker {marker!r}")
+    if "shell=True" in adapter_text:
+        errors.append("scripts/renguard_benchmark/adapters.py: shell=True is prohibited")
+
+    prompt_text = _read_text(root, "scripts/renguard_benchmark/prompt_builder.py", errors) or ""
+    for marker in ("RUNTIME_FIELDS", "FORBIDDEN_RUNTIME_FIELDS", "ground-truth leakage detected"):
+        if marker not in prompt_text:
+            errors.append(f"scripts/renguard_benchmark/prompt_builder.py: missing leakage protection {marker!r}")
+    for forbidden_name in ("must_detect", "must_not_detect", "expected_primary_technique", "expected_risk", "expected_confidence"):
+        if f'"{forbidden_name}"' not in prompt_text:
+            errors.append(f"scripts/renguard_benchmark/prompt_builder.py: forbidden field {forbidden_name!r} is not guarded")
+
+    execution_text = _read_text(root, "scripts/renguard_benchmark/execution.py", errors) or ""
+    if "live-capable adapters require --execute-live" not in execution_text:
+        errors.append("scripts/renguard_benchmark/execution.py: explicit live-network gate is missing")
+    if "ThreadPoolExecutor" not in execution_text or "execution_key" not in execution_text:
+        errors.append("scripts/renguard_benchmark/execution.py: concurrency/resume architecture is incomplete")
+
+    gitignore = _read_text(root, ".gitignore", errors) or ""
+    if not re.search(r"(?m)^benchmark-runs/$", gitignore):
+        errors.append(".gitignore: generated benchmark-runs/ directory must be ignored")
+    if re.search(r"(?m)^evals/v2/|^tests/fixtures/", gitignore):
+        errors.append(".gitignore: committed corpus/fixture paths must not be ignored")
+
+    fixture_path = root / "tests" / "fixtures" / "benchmark" / "fixture-profiles.json"
+    fixture = _load_json(fixture_path, "Phase 9 fixture profiles", errors)
+    if not isinstance(fixture, dict) or fixture.get("fixture_only") is not True:
+        errors.append("tests/fixtures/benchmark/fixture-profiles.json: fixtures must be labeled test-only")
+    if isinstance(fixture, dict) and "not RenGuard performance" not in fixture.get("warning", ""):
+        errors.append("tests/fixtures/benchmark/fixture-profiles.json: synthetic performance disclaimer missing")
+
+    if (root / ".git").exists():
+        tracked = subprocess.run(
+            ["git", "ls-files", "--", "benchmark-runs"], cwd=root,
+            capture_output=True, text=True, check=False,
+        )
+        if tracked.stdout.strip():
+            errors.append("benchmark-runs/: generated run artifacts must not be committed")
+    credential_patterns = (
+        re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),
+        re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
+        re.compile(r"\bAIza[0-9A-Za-z_-]{30,}\b"),
+        re.compile(r"-----BEGIN (?:RSA |EC )?PRIVATE KEY-----"),
+        re.compile(r"\bBearer [A-Za-z0-9._-]{20,}\b"),
+    )
+    phase9_text_files = [
+        runner, *(package / name for name in PHASE9_MODULES), root / "BENCHMARKING.md",
+        root / "tests" / "test_benchmark.py", fixture_path,
+    ]
+    for path in phase9_text_files:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        if any(pattern.search(text) for pattern in credential_patterns):
+            errors.append(f"{path.relative_to(root)}: possible real credential in Phase 9 content")
+    for relative_name in ("README.md", "BENCHMARKING.md", "evals/v2/README.md", "CHANGELOG.md"):
+        text = _read_text(root, relative_name, errors) or ""
+        if "no official" not in " ".join(text.lower().split()):
+            errors.append(f"{relative_name}: must state that no official v2 live result exists")
+
+    return {
+        "runner_version": PHASE9_RUNNER_VERSION,
+        "scoring_version": PHASE9_SCORING_VERSION,
+        "artifact_schema_version": PHASE9_ARTIFACT_SCHEMA_VERSION,
+        "module_count": len(PHASE9_MODULES),
+    }
+
+
 def validate_repository(root: Path) -> ValidationResult:
     root = root.resolve()
     validation = ValidationResult()
@@ -2546,8 +2648,10 @@ def validate_repository(root: Path) -> ValidationResult:
     validation.v2_metrics = _validate_v2_suite(
         root, REQUIRED_TECHNIQUE_IDS, validation.errors
     )
+    validation.phase9_metrics = _validate_phase9_runner(root, validation.errors)
     for relative_name in (
         "README.md",
+        "BENCHMARKING.md",
         "SKILL.md",
         "evals/v2/README.md",
         "evals/v2/HOLDOUT_POLICY.md",
@@ -2589,6 +2693,12 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"- v2 corpus coverage: {result.v2_metrics['covered_techniques']}/"
             f"{len(REQUIRED_TECHNIQUE_IDS)} techniques"
+        )
+    if result.phase9_metrics:
+        print(
+            f"- Phase 9 runner/scoring/schema: {result.phase9_metrics['runner_version']} / "
+            f"{result.phase9_metrics['scoring_version']} / "
+            f"{result.phase9_metrics['artifact_schema_version']}"
         )
     for configuration in CONFIGURATIONS:
         metrics = result.metrics[configuration]
