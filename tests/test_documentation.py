@@ -13,6 +13,8 @@ CORE_DOCS = (
     "BENCHMARKING.md",
     "CONTRIBUTING.md",
     "SECURITY.md",
+    "RELEASE_NOTES.md",
+    "RELEASE_CHECKLIST.md",
     "docs/architecture.md",
     "docs/threat-model.md",
     "docs/usage.md",
@@ -33,11 +35,9 @@ class DocumentationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        cls.documents = [
-            *(ROOT / path for path in CORE_DOCS),
-            *sorted((ROOT / "references").glob("*.md")),
-            *(ROOT / path for path in EXAMPLES),
-        ]
+        cls.documents = sorted(
+            path for path in ROOT.rglob("*.md") if ".git" not in path.parts
+        )
 
     def test_core_documents_and_examples_exist(self) -> None:
         for relative in (*CORE_DOCS, *EXAMPLES):

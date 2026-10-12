@@ -1,7 +1,7 @@
 ---
 name: renguard
 author: Shadow (RENJI04)
-version: 2.0.0-alpha.1
+version: 2.0.0
 description: >
   Model-agnostic security auditing for AI systems and agents. Audits system prompts,
   AI application instructions, multi-turn conversation logs, and agent specifications

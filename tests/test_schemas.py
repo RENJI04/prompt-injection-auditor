@@ -148,7 +148,7 @@ class SchemaContractTests(unittest.TestCase):
             shutil.copytree(ROOT, target, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc"))
             (target / "unregistered.json").write_text("{not-json}\n", encoding="utf-8")
             errors, counts = validate_repository_contracts(target)
-            self.assertEqual(27, counts["json_files"])
+            self.assertEqual(28, counts["json_files"])
             self.assertTrue(any("unregistered.json" in item for item in errors))
 
     def test_all_72_scenarios_validate_structurally(self) -> None:

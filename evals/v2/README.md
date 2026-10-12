@@ -130,7 +130,7 @@ artifacts belong under ignored `benchmark-runs/`, not in this corpus.
 
 This is a public regression corpus, so systems can eventually see and overfit it. It
 does not measure unseen-case generalization, native media perception, live tool or sink
-behavior, or unseen-case generalization. The Phase 9 runner can measure repeated-run
+behavior, or universal provider behavior. The Phase 9 runner can measure repeated-run
 behavior, latency/usage when an adapter exposes it, deterministic assertions, optional
 narrow judging, human review, and statistical summaries. Those capabilities do not
 turn corpus coverage into empirical performance; no official live result exists.

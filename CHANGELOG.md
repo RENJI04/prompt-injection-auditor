@@ -3,7 +3,22 @@
 All notable project changes are documented here. RenGuard v2 remains in development;
 no final v2.0.0 release is declared by this file.
 
-## Unreleased — RenGuard 2.0.0-alpha.1
+## Unreleased — RenGuard 2.0.0 release candidate
+
+### Phase 12 release readiness
+
+- Prepared the canonical Skill version for the `2.0.0` release target without claiming
+  that a public tag or GitHub release exists.
+- Added concise release notes, a local-versus-external release checklist, and a
+  machine-readable readiness manifest whose final source commit remains explicitly
+  pending until the Phase 12 changes are committed.
+- Recorded local validation separately from pending GitHub-hosted CI, and documented
+  that an official live-model benchmark is not required for the core framework release
+  unless quantitative performance claims are intended.
+- Added semantic release-readiness regression tests while preserving independent suite,
+  runner, scoring, artifact, and schema versions.
+- Replaced an illustrative destructive SQL statement in the coding-agent example with
+  an inert placeholder while preserving the documented authorization failure.
 
 ### Phase 11 examples and documentation
 

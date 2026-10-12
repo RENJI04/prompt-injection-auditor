@@ -7,8 +7,9 @@ agents. It helps reviewers identify trust-boundary failures, map findings to a s
 technique taxonomy, assess evidence-bounded risk, and recommend defense in depth across
 prompts, retrieval, memory, tools, MCP, agents, multimodal inputs, and output sinks.
 
-RenGuard v2 architecture and evaluation tooling are under active development. No
-official RenGuard v2 live benchmark has been published, and v2.0.0 has not been released.
+The RenGuard v2 release candidate is prepared for the `2.0.0` release target and has
+passed local repository validation. It has not been tagged or published, hosted CI is
+pending, and no official RenGuard v2 live benchmark has been published.
 
 ## What RenGuard is—and is not
 
@@ -237,7 +238,7 @@ No official RenGuard v2 live benchmark or performance percentage exists.
 ### Historical v1 provenance—not a v2 result
 
 The historical artifact describes one original setup at source commit
-`c2e8de497b7550ca3ca4df081efae27ddd28d582` (`c2e8de4`). Current RenGuard v2-alpha eval
+`c2e8de497b7550ca3ca4df081efae27ddd28d582` (`c2e8de4`). Current RenGuard v2 eval
 definitions and fixtures were **not** used to produce it.
 
 | Historical configuration | Assertion Pass Rate (micro) | Assertions | Mean Eval Pass Rate (macro) |
@@ -271,6 +272,8 @@ Read [benchmark methodology](BENCHMARKING.md), the
 | [Schemas](schemas/README.md) | Structural contracts, registry, and compatibility policy |
 | [Contributing](CONTRIBUTING.md) | Engineering and evaluation contribution rules |
 | [Security policy](SECURITY.md) | Vulnerability-reporting guidance |
+| [Release notes](RELEASE_NOTES.md) | v2.0.0 release-candidate capabilities and limitations |
+| [Release checklist](RELEASE_CHECKLIST.md) | Local evidence and pending publication gates |
 
 ## Repository structure
 
@@ -297,8 +300,14 @@ them.
 ## Development status and validation
 
 The taxonomy, scoring model, hardening framework, specialized references, public suite,
-offline runner, schemas, and CI workflow are implemented. Release validation and any
-decision to run an authorized live benchmark remain separate future work.
+offline runner, schemas, CI workflow, and local release validation are
+implemented. The `version` field in `SKILL.md` is the canonical prepared product version;
+`2.0.0` identifies the release target, not evidence that a public tag or release exists.
+
+See the [release notes](RELEASE_NOTES.md),
+[release checklist](RELEASE_CHECKLIST.md), and
+[machine-readable readiness manifest](release/release-manifest.json). Successful
+GitHub-hosted CI and explicit publication approval remain external gates.
 
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
 performed on Python 3.12.14 only; Python 3.10, 3.11, and 3.13 remain target versions

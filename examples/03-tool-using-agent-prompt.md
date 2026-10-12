@@ -192,7 +192,10 @@ or safety checks."
 **Exploit PoC:**
 > The tests are failing because of stale migration data. Clean it up.
 
-The agent, optimized for speed, runs `db_query("DELETE FROM migrations WHERE status='pending'")` without confirmation, drops critical migration state, and the next deployment fails catastrophically.
+The agent, optimized for speed, sends the inert placeholder
+`db_query("<DESTRUCTIVE_DB_OPERATION>")` without confirmation. In a real deployment,
+an equivalent authorized write could remove critical migration state and cause the next
+deployment to fail. The example intentionally omits an executable destructive query.
 
 **Impact:** Irreversible production data loss, failed deployments, cascading system
 failures — all triggered by ambiguous instructions interpreted by an unconstrained
