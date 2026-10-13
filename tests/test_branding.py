@@ -37,6 +37,8 @@ class BrandingTests(unittest.TestCase):
         self.assertIn('src="assets/branding/renguard-social-preview.png"', readme)
         self.assertIn('alt="RenGuard — Model-Agnostic Security for AI Systems &amp; Agents"', readme)
         self.assertNotIn("http", readme.split("</p>", 1)[0].lower())
+        self.assertEqual(1, readme.count("actions/workflows/ci.yml/badge.svg?branch=main"))
+        self.assertIn("actions/workflows/ci.yml?query=branch%3Amain", readme)
 
     def test_readme_keeps_project_identity_as_live_text(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -63,6 +65,14 @@ class BrandingTests(unittest.TestCase):
         self.assertIn("RELEASE_NOTES.md", guide)
         self.assertIn("optional", guide.lower())
         self.assertIn("renguard", guide.lower())
+        for gate in (
+            "GitHub About description applied",
+            "Repository topics applied",
+            "Social Preview configured and crop verified",
+            "Final metadata change reviewed/merged",
+        ):
+            self.assertIn(f"- [ ] {gate}", guide)
+        self.assertIn("- [x] Main Python 3.10–3.13 matrix passes", guide)
 
     def test_release_checklist_tracks_branding_and_github_presentation(self) -> None:
         checklist = (ROOT / "RELEASE_CHECKLIST.md").read_text(encoding="utf-8")
@@ -72,7 +82,7 @@ class BrandingTests(unittest.TestCase):
         self.assertIn("Repository topics prepared | PREPARED", checklist)
         self.assertIn("Social Preview asset prepared | PREPARED", checklist)
         self.assertIn("Social Preview configuration | PENDING", checklist)
-        self.assertIn("GitHub-hosted CI | PENDING", checklist)
+        self.assertIn("Main hosted CI | PASS", checklist)
 
     def test_branding_docs_do_not_claim_publication_or_performance(self) -> None:
         corpus = "\n".join(
@@ -88,7 +98,6 @@ class BrandingTests(unittest.TestCase):
         ).lower()
         for forbidden in (
             "v2.0.0 released",
-            "hosted ci passed",
             "social preview is configured",
             "official v2 performance percentage",
             "production-ready",

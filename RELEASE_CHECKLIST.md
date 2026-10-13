@@ -1,8 +1,8 @@
 # RenGuard v2.0.0 Release Checklist
 
-This checklist distinguishes the locally validated release candidate from external
-publication. `PASS` below records repository-local evidence only; it does not imply that
-a tag or GitHub release exists.
+This checklist records local validation and observed GitHub evidence for the release
+candidate. Completed CI and merge gates do not imply that a public tag or GitHub
+Release exists. The follow-up metadata preparation still requires review.
 
 ## Local and repository gates
 
@@ -37,7 +37,9 @@ a tag or GitHub release exists.
 | About description prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
 | Repository topics prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
 | Social Preview asset prepared | PREPARED | Use `assets/branding/renguard-social-preview.png` |
-| Social Preview configuration | PENDING | Manual GitHub repository configuration required after push |
+| GitHub About application | PENDING | Apply the prepared description only with approval |
+| Topics application | PENDING | Apply the prepared topics only with approval |
+| Social Preview configuration | PENDING | Manual GitHub repository configuration and crop verification required |
 
 The prepared Social Preview file is not evidence that the GitHub repository setting has
 already been configured.
@@ -46,15 +48,24 @@ already been configured.
 
 | Gate | Status | Requirement |
 |---|---|---|
-| Push release-candidate commit | NOT_PERFORMED | Owner approval after Phase 12 review |
-| GitHub-hosted CI | PENDING | Push candidate and obtain a passing Python 3.10–3.13 matrix |
-| Review final hosted diff and checks | PENDING | Confirm the pushed commit matches the reviewed candidate |
-| Create `v2.0.0` tag | NOT_PERFORMED | Only after hosted CI and release approval |
-| Create GitHub release | NOT_PERFORMED | Publish approved notes from the tagged commit |
-| Rename repository | NOT_PERFORMED | Optional naming decision; not technically required |
-| Official live-model benchmark | NOT_REQUIRED | Required only before making quantitative live-performance claims |
+| Final branded RC | PASS | `9141879401019e6172aec27748dff216cb63370d` |
+| RC pushed | PASS | Approved RC on remote `work` |
+| RC push hosted CI | PASS | [Run 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172) |
+| Release PR | PASS | [PR #1](https://github.com/RENJI04/prompt-injection-auditor/pull/1) |
+| PR CI | PASS | [Run 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336) |
+| Merge to main | PASS | Normal merge `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`; full checkpoint history retained |
+| Main hosted CI | PASS | [Run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797) |
+| Python 3.10 | PASS | Main hosted CI matrix |
+| Python 3.11 | PASS | Main hosted CI matrix |
+| Python 3.12 | PASS | Main hosted CI matrix |
+| Python 3.13 | PASS | Main hosted CI matrix |
+| Final metadata change reviewed/merged | PENDING | Review this documentation-only preparation |
+| `v2.0.0` public tag | NOT_PERFORMED | Separate explicit approval required |
+| GitHub Release | NOT_PERFORMED | Separate explicit approval required |
+| Repository rename | NOT_REQUIRED / NOT_PERFORMED | Optional naming decision |
+| Official live benchmark | NOT_REQUIRED / NOT_PERFORMED | Required only before quantitative live-performance claims |
 
-Before publication, replace the pending `source_commit` in
-[`release/release-manifest.json`](release/release-manifest.json) with the final committed
-release-candidate SHA and rerun all local gates. Do not mark hosted CI, a tag, or a
-GitHub release complete without external evidence.
+The `source_commit` in [`release/release-manifest.json`](release/release-manifest.json)
+identifies the validated main merge commit containing the release product content,
+not the later metadata commit. This avoids self-reference. Keep `RELEASE_CANDIDATE`
+until public publication is separately approved and completed.

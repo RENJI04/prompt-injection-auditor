@@ -2,8 +2,16 @@
 
 **Model-Agnostic Security for AI Systems & Agents**
 
-Release status: **locally validated release candidate**. This repository state targets
+Release status: **validated release candidate on main**. This repository state targets
 v2.0.0; it has not been tagged or published as a GitHub release.
+
+Validated main source: `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`.
+GitHub-hosted Python 3.10–3.13 CI passed for this source in
+[main run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797).
+The earlier [RC push run 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172)
+and [release PR run 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336)
+also passed. These results validate the release-source lineage; the follow-up metadata
+preparation still requires review.
 
 ## Overview
 
@@ -67,8 +75,8 @@ requires an explicit gate and is not used by standard validation or CI.
 
 - Dependency-free validation and benchmark tooling using the Python standard library.
 - Model-offline quality gate and CI configuration targeting Python 3.10–3.13.
-- Phase 10 local verification on Python 3.12.14; the hosted matrix remains pending and
-  is targeted compatibility rather than hosted-verified support.
+- Phase 10 local verification on Python 3.12.14; subsequent GitHub-hosted CI passed
+  on Python 3.10, 3.11, 3.12, and 3.13 for the validated main release source.
 - Versioned suite, runner, scoring, artifact, and schema contracts independent from the
   RenGuard product release target.
 
@@ -111,5 +119,6 @@ Start with [`SKILL.md`](SKILL.md), then use the [usage guide](docs/usage.md) and
 [examples](examples/) for the audit workflow. Review [BENCHMARKING.md](BENCHMARKING.md)
 before interpreting evaluation artifacts. Publication owners should follow the
 [release checklist](RELEASE_CHECKLIST.md) and
-[GitHub publication guide](release/GITHUB_PUBLISHING.md); hosted CI, tagging, Social
-Preview configuration, and GitHub Release creation remain separate external actions.
+[GitHub publication guide](release/GITHUB_PUBLISHING.md). Hosted CI has passed;
+metadata review, tagging, Social Preview configuration, and GitHub Release creation
+remain pending publication gates.
