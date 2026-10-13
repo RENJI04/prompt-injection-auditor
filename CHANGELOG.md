@@ -1,20 +1,23 @@
 # Changelog
 
-All notable project changes are documented here. RenGuard v2 remains in development;
-no final v2.0.0 release is declared by this file.
+All notable project changes are documented here.
 
-## Unreleased — RenGuard 2.0.0 release candidate
+## Unreleased
+
+No unreleased product changes.
+
+## 2.0.0 — 2026-10-13
 
 ### Phase 12 release readiness
 
-- Prepared the canonical Skill version for the `2.0.0` release target without claiming
-  that a public tag or GitHub release exists.
+- Set the canonical Skill version to `2.0.0` and completed the release-readiness
+  metadata later published under tag `v2.0.0`.
 - Added concise release notes, a local-versus-external release checklist, and a
-  machine-readable readiness manifest whose final source commit remains explicitly
-  pending until the Phase 12 changes are committed.
-- Recorded local validation separately from pending GitHub-hosted CI, and documented
-  that an official live-model benchmark is not required for the core framework release
-  unless quantitative performance claims are intended.
+  machine-readable readiness manifest that preserves the validated product source
+  separately from later metadata and publication history.
+- Recorded local validation separately from hosted CI, and documented that an official
+  live-model benchmark is not required for the core framework release unless
+  quantitative performance claims are intended.
 - Added semantic release-readiness regression tests while preserving independent suite,
   runner, scoring, artifact, and schema versions.
 - Replaced an illustrative destructive SQL statement in the coding-agent example with
@@ -45,7 +48,8 @@ no final v2.0.0 release is declared by this file.
   schema/JSON checks, and a deterministic temporary FixtureAdapter smoke run.
 - Configured read-only, secret-free GitHub Actions CI with a Python 3.10–3.13 target
   matrix on pushes and pull requests, with no live model execution or artifact upload.
-  Phase 10 local verification used Python 3.12.14; the hosted matrix has not yet run.
+  Phase 10 local verification used Python 3.12.14; the hosted matrix had not yet run at
+  that checkpoint and subsequently passed before the v2.0.0 release.
 - Added contributor/security guidance, editor normalization, artifact hygiene, version
   checks, and schema/CI/repository regression coverage.
 - Preserved Phase 3–9 security and benchmark semantics, protected historical artifacts,

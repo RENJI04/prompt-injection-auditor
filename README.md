@@ -13,10 +13,11 @@ agents. It helps reviewers identify trust-boundary failures, map findings to a s
 technique taxonomy, assess evidence-bounded risk, and recommend defense in depth across
 prompts, retrieval, memory, tools, MCP, agents, multimodal inputs, and output sinks.
 
-The RenGuard v2 release candidate is on `main` for the `2.0.0` release target and has
-passed local repository validation and GitHub-hosted Python 3.10–3.13 CI. The validated
-main release source is `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`. It has not been
-tagged or published as a GitHub Release, and no official RenGuard v2 live benchmark
+The current stable release is [RenGuard v2.0.0](https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0),
+published on 2026-10-13 from tagged commit
+`cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`. The validated product source is
+`d8ec26b9b19f79f9a134f838ba2f4b3d34211963`; GitHub-hosted Python 3.10–3.13 CI
+passed for the final tagged repository state. No official RenGuard v2 live benchmark
 has been published.
 
 ## What RenGuard is—and is not
@@ -280,9 +281,9 @@ Read [benchmark methodology](BENCHMARKING.md), the
 | [Schemas](schemas/README.md) | Structural contracts, registry, and compatibility policy |
 | [Contributing](CONTRIBUTING.md) | Engineering and evaluation contribution rules |
 | [Security policy](SECURITY.md) | Vulnerability-reporting guidance |
-| [Release notes](RELEASE_NOTES.md) | v2.0.0 release-candidate capabilities and limitations |
-| [Release checklist](RELEASE_CHECKLIST.md) | Local evidence and pending publication gates |
-| [GitHub publishing guide](release/GITHUB_PUBLISHING.md) | Prepared About text, topics, Social Preview asset, and pending publication steps |
+| [Release notes](RELEASE_NOTES.md) | Published v2.0.0 capabilities, evidence, and limitations |
+| [Release checklist](RELEASE_CHECKLIST.md) | Completed v2.0.0 validation and publication gates |
+| [GitHub publishing record](release/GITHUB_PUBLISHING.md) | Applied About text, topics, Social Preview, tag, and release evidence |
 | [Branding assets](assets/branding/README.md) | Approved icon, wordmark, banner, and accessibility guidance |
 
 ## Repository structure
@@ -312,21 +313,21 @@ them.
 ## Development status and validation
 
 The taxonomy, scoring model, hardening framework, specialized references, public suite,
-offline runner, schemas, CI workflow, and local release validation are
-implemented. The `version` field in `SKILL.md` is the canonical prepared product version;
-`2.0.0` identifies the release target, not evidence that a public tag or release exists.
+offline runner, schemas, CI workflow, and local release validation are implemented. The
+`version` field in `SKILL.md` is the canonical product version; the current stable
+release is `v2.0.0`.
 
 See the [release notes](RELEASE_NOTES.md),
 [release checklist](RELEASE_CHECKLIST.md), and
-[GitHub publishing guide](release/GITHUB_PUBLISHING.md). The
+[GitHub publishing record](release/GITHUB_PUBLISHING.md). The
 [machine-readable readiness manifest](release/release-manifest.json) preserves the
-release state and contract versions. GitHub-hosted CI passed for the validated main
-source; metadata review and explicit publication approval remain pending.
+release state, publication evidence, and contract versions. GitHub-hosted CI passed for
+the final tagged repository state before publication.
 
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
 performed on Python 3.12.14 only. GitHub-hosted CI subsequently passed on Python 3.10,
-3.11, 3.12, and 3.13 for the validated main release source in
-[run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797).
+3.11, 3.12, and 3.13 for the final tagged repository state in
+[run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406).
 
 Run the same dependency-free quality gate configured for CI:
 

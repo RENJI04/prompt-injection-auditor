@@ -15,6 +15,8 @@ from scripts.renguard_benchmark import (
 ROOT = Path(__file__).resolve().parents[1]
 PHASE11_CHECKPOINT = "835de825c0a587dc9932c5eaac75100ce2885f7b"
 VALIDATED_MAIN_COMMIT = "d8ec26b9b19f79f9a134f838ba2f4b3d34211963"
+TAGGED_RELEASE_COMMIT = "cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec"
+RELEASE_URL = "https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0"
 
 
 class ReleaseReadinessTests(unittest.TestCase):
@@ -37,15 +39,16 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertEqual(match.group(1), manifest["release_target"])
         self.assertEqual("2.0.0", manifest["release_target"])
 
-    def test_release_identity_is_candidate_not_publication(self) -> None:
+    def test_release_identity_records_published_state(self) -> None:
         manifest = json.loads(self.manifest_path.read_text(encoding="utf-8"))
         self.assertEqual("RenGuard", manifest["product"])
         self.assertEqual(12, manifest["phase"])
-        self.assertEqual("RELEASE_CANDIDATE", manifest["release_status"])
+        self.assertEqual("RELEASED", manifest["release_status"])
         self.assertEqual("PASS", manifest["local_release_validation"])
         self.assertEqual(PHASE11_CHECKPOINT, manifest["source_checkpoint"])
         self.assertEqual(VALIDATED_MAIN_COMMIT, manifest["source_commit"])
-        self.assertIn("validated main merge commit", manifest["source_commit_note"])
+        self.assertIn("validated product-source merge", manifest["source_commit_note"])
+        self.assertIn(TAGGED_RELEASE_COMMIT, manifest["source_commit_note"])
         self.assertIn("self-referential commit binding is intentionally avoided", manifest["source_commit_note"])
 
     def test_independent_contract_versions_match_sources(self) -> None:
@@ -91,11 +94,18 @@ class ReleaseReadinessTests(unittest.TestCase):
         gates = manifest["external_gates"]
         self.assertEqual("PASS", gates["hosted_ci"])
         self.assertEqual("PERFORMED", gates["push"])
-        for name in ("public_tag", "github_release", "repository_rename"):
-            self.assertEqual("NOT_PERFORMED", gates[name])
+        for name in ("public_tag", "github_release"):
+            self.assertEqual("PERFORMED", gates[name])
+        self.assertEqual("NOT_PERFORMED", gates["repository_rename"])
         benchmark = gates["official_live_benchmark"]
         self.assertEqual("NOT_PERFORMED", benchmark["status"])
         self.assertFalse(benchmark["required_for_core_release"])
+        publication = manifest["publication"]
+        self.assertEqual("v2.0.0", publication["tag"])
+        self.assertEqual(TAGGED_RELEASE_COMMIT, publication["tagged_commit"])
+        self.assertEqual("RenGuard v2.0.0", publication["github_release"])
+        self.assertEqual(RELEASE_URL, publication["release_url"])
+        self.assertEqual("2026-10-13T07:01:50Z", publication["published_at"])
         evidence = manifest["python_compatibility_evidence"]
         self.assertEqual(["3.10", "3.11", "3.12", "3.13"], evidence["ci_target_matrix"])
         self.assertEqual("3.12.14", evidence["locally_verified"])
@@ -103,20 +113,26 @@ class ReleaseReadinessTests(unittest.TestCase):
 
     def test_release_notes_state_benchmark_and_publication_limits(self) -> None:
         notes = self.notes_path.read_text(encoding="utf-8")
-        self.assertIn("release candidate", notes.lower())
+        normalized_notes = re.sub(r"\s+", " ", notes)
+        self.assertIn("Release status: **published**", notes)
+        self.assertIn("RenGuard v2.0.0 was published on 2026-10-13", notes)
         self.assertIn("No official RenGuard v2 live-model benchmark result is included", notes)
-        self.assertIn("72 scenarios are public evaluation definitions", notes)
-        self.assertIn("FixtureAdapter results are synthetic engineering validation", notes)
-        self.assertIn("has not been tagged or published", notes)
+        self.assertIn("72 scenarios are public evaluation definitions", normalized_notes)
+        self.assertIn(
+            "FixtureAdapter results are synthetic engineering validation",
+            normalized_notes,
+        )
         self.assertIn(VALIDATED_MAIN_COMMIT, notes)
-        self.assertIn("GitHub-hosted Python 3.10–3.13 CI passed", notes)
+        self.assertIn(TAGGED_RELEASE_COMMIT, notes)
+        self.assertIn(RELEASE_URL, notes)
+        self.assertIn("GitHub-hosted Python 3.10–3.13 CI passed", normalized_notes)
 
     def test_release_checklist_separates_local_and_external_gates(self) -> None:
         checklist = self.checklist_path.read_text(encoding="utf-8")
         self.assertIn("## Local and repository gates", checklist)
         self.assertIn("## External and publication gates", checklist)
         for gate in (
-            "Final branded RC",
+            "Final RC approved",
             "RC pushed",
             "RC push hosted CI",
             "Release PR",
@@ -131,27 +147,36 @@ class ReleaseReadinessTests(unittest.TestCase):
             matching = [line for line in checklist.splitlines() if f"| {gate} |" in line]
             self.assertEqual(1, len(matching), gate)
             self.assertIn("| PASS |", matching[0])
-        for gate in ("GitHub About application", "Topics application", "Social Preview configuration"):
+        for gate in ("GitHub About application", "Topics application"):
             matching = [line for line in checklist.splitlines() if f"| {gate} |" in line]
             self.assertEqual(1, len(matching), gate)
-            self.assertIn("| PENDING |", matching[0])
-        for gate in ("`v2.0.0` public tag", "GitHub Release"):
+            self.assertIn("| PASS |", matching[0])
+        matching = [line for line in checklist.splitlines() if "| Social Preview configuration |" in line]
+        self.assertEqual(1, len(matching))
+        self.assertIn("| MANUALLY_CONFIGURED |", matching[0])
+        for gate in ("`v2.0.0` annotated tag", "GitHub Release"):
             matching = [line for line in checklist.splitlines() if f"| {gate} |" in line]
             self.assertEqual(1, len(matching), gate)
-            self.assertIn("| NOT_PERFORMED |", matching[0])
+            self.assertIn("| PERFORMED |", matching[0])
+        self.assertIn("| Latest release | YES |", checklist)
 
-    def test_release_docs_make_no_published_or_performance_claim(self) -> None:
+    def test_release_docs_have_no_stale_pending_or_performance_claim(self) -> None:
         corpus = "\n".join(
             path.read_text(encoding="utf-8")
             for path in (self.notes_path, self.checklist_path, self.manifest_path)
         ).lower()
         for forbidden in (
-            "v2.0.0 released",
-            "latest release",
+            "release candidate",
+            "public tag and github release have not been performed",
+            "github release creation remain pending",
             "official v2 performance percentage",
             "python 3.10–3.13 supported",
         ):
             self.assertNotIn(forbidden, corpus)
+        self.assertNotRegex(
+            corpus,
+            r"(?:renguard\s+)?v2[^\n%]{0,120}\d+(?:\.\d+)?%",
+        )
 
 
 if __name__ == "__main__":

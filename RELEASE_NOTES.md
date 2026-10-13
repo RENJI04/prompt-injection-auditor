@@ -2,16 +2,18 @@
 
 **Model-Agnostic Security for AI Systems & Agents**
 
-Release status: **validated release candidate on main**. This repository state targets
-v2.0.0; it has not been tagged or published as a GitHub release.
+Release status: **published**. RenGuard v2.0.0 was published on 2026-10-13.
 
-Validated main source: `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`.
-GitHub-hosted Python 3.10–3.13 CI passed for this source in
-[main run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797).
-The earlier [RC push run 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172)
-and [release PR run 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336)
-also passed. These results validate the release-source lineage; the follow-up metadata
-preparation still requires review.
+- Tag: `v2.0.0`
+- Tagged commit: `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`
+- GitHub Release: <https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0>
+- Published at: `2026-10-13T07:01:50Z`
+
+The validated product source remains
+`d8ec26b9b19f79f9a134f838ba2f4b3d34211963`. GitHub-hosted Python 3.10–3.13 CI
+passed for the final tagged repository state in
+[run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406).
+This later post-release metadata synchronization is not part of the tagged artifact.
 
 ## Overview
 
@@ -84,8 +86,8 @@ requires an explicit gate and is not used by standard validation or CI.
 
 Reader-oriented architecture, threat-model, usage, benchmark, schema, contribution,
 security, and evaluation documentation is included with six educational audit examples.
-Approved RenGuard branding and a manual GitHub publication runbook are prepared in the
-repository; their presence does not imply publication or Social Preview configuration.
+Approved RenGuard branding is included in the repository. The GitHub About description,
+topics, and Social Preview were manually configured before publication.
 
 ## Known limitations
 
@@ -102,11 +104,10 @@ repository; their presence does not imply publication or Social Preview configur
 
 ## Benchmark status
 
-No official RenGuard v2 live-model benchmark result is included in this release
-candidate. The 72 scenarios are public evaluation definitions, not 72 live-model
-passes. FixtureAdapter results are synthetic engineering validation and must not be
-reported as product performance. No numerical RenGuard v2 performance claim is made by
-this release candidate.
+No official RenGuard v2 live-model benchmark result is included in this release. The 72
+scenarios are public evaluation definitions, not 72 live-model passes. FixtureAdapter
+results are synthetic engineering validation and must not be reported as product
+performance. No numerical RenGuard v2 performance claim is made by this release.
 
 The absence of a live-model result does not block release of the core auditing
 framework because no quantitative live-performance claim is made. Any later official
@@ -119,6 +120,5 @@ Start with [`SKILL.md`](SKILL.md), then use the [usage guide](docs/usage.md) and
 [examples](examples/) for the audit workflow. Review [BENCHMARKING.md](BENCHMARKING.md)
 before interpreting evaluation artifacts. Publication owners should follow the
 [release checklist](RELEASE_CHECKLIST.md) and
-[GitHub publication guide](release/GITHUB_PUBLISHING.md). Hosted CI has passed;
-metadata review, tagging, Social Preview configuration, and GitHub Release creation
-remain pending publication gates.
+[GitHub publication record](release/GITHUB_PUBLISHING.md). Hosted CI and the documented
+publication gates completed before the v2.0.0 GitHub Release was published.

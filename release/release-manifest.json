@@ -5,7 +5,7 @@
   "source_checkpoint": "835de825c0a587dc9932c5eaac75100ce2885f7b",
   "source_commit": "d8ec26b9b19f79f9a134f838ba2f4b3d34211963",
   "phase": 12,
-  "release_status": "RELEASE_CANDIDATE",
+  "release_status": "RELEASED",
   "local_release_validation": "PASS",
   "contract_versions": {
     "public_evaluation_suite": "0.1.0",
@@ -46,10 +46,17 @@
       "status": "NOT_PERFORMED"
     },
     "push": "PERFORMED",
-    "public_tag": "NOT_PERFORMED",
-    "github_release": "NOT_PERFORMED",
+    "public_tag": "PERFORMED",
+    "github_release": "PERFORMED",
     "repository_rename": "NOT_PERFORMED"
   },
-  "source_commit_note": "The source_commit identifies the validated main merge commit containing the RenGuard v2.0.0 release content. That commit passed GitHub-hosted Python 3.10–3.13 CI. Release-metadata finalization is a follow-up documentation-only operation, so self-referential commit binding is intentionally avoided.",
-  "publication_note": "The release candidate content is on main and GitHub-hosted CI passed. The public tag and GitHub Release have not been performed. This manifest makes no official live-model performance claim; the metadata preparation itself still requires review."
+  "publication": {
+    "tag": "v2.0.0",
+    "tagged_commit": "cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec",
+    "github_release": "RenGuard v2.0.0",
+    "release_url": "https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0",
+    "published_at": "2026-10-13T07:01:50Z"
+  },
+  "source_commit_note": "The source_commit identifies the validated product-source merge containing the RenGuard v2.0.0 implementation. That commit passed GitHub-hosted Python 3.10–3.13 CI. The final tagged repository state is cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec; later metadata-only changes are not part of the tagged artifact, so self-referential commit binding is intentionally avoided.",
+  "publication_note": "RenGuard v2.0.0 was published from annotated tag v2.0.0 at cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec. The GitHub Release is published at the recorded URL. This manifest makes no official live-model performance claim; the official live benchmark remains not performed and was not required for the core release."
 }

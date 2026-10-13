@@ -1,8 +1,7 @@
 # RenGuard v2.0.0 Release Checklist
 
-This checklist records local validation and observed GitHub evidence for the release
-candidate. Completed CI and merge gates do not imply that a public tag or GitHub
-Release exists. The follow-up metadata preparation still requires review.
+This checklist records the completed local, repository, GitHub presentation, and
+publication gates for RenGuard v2.0.0. The release was published on 2026-10-13.
 
 ## Local and repository gates
 
@@ -37,18 +36,18 @@ Release exists. The follow-up metadata preparation still requires review.
 | About description prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
 | Repository topics prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
 | Social Preview asset prepared | PREPARED | Use `assets/branding/renguard-social-preview.png` |
-| GitHub About application | PENDING | Apply the prepared description only with approval |
-| Topics application | PENDING | Apply the prepared topics only with approval |
-| Social Preview configuration | PENDING | Manual GitHub repository configuration and crop verification required |
+| GitHub About application | PASS | Prepared description applied and verified |
+| Topics application | PASS | Prepared topic set applied and verified |
+| Social Preview configuration | MANUALLY_CONFIGURED | Repository owner selected the approved asset and verified the crop |
 
-The prepared Social Preview file is not evidence that the GitHub repository setting has
-already been configured.
+The Social Preview required manual GitHub repository configuration; the repository file
+alone was not treated as evidence that the setting had been applied.
 
 ## External and publication gates
 
 | Gate | Status | Requirement |
 |---|---|---|
-| Final branded RC | PASS | `9141879401019e6172aec27748dff216cb63370d` |
+| Final RC approved | PASS | Branded RC `9141879401019e6172aec27748dff216cb63370d` |
 | RC pushed | PASS | Approved RC on remote `work` |
 | RC push hosted CI | PASS | [Run 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172) |
 | Release PR | PASS | [PR #1](https://github.com/RENJI04/prompt-injection-auditor/pull/1) |
@@ -59,13 +58,17 @@ already been configured.
 | Python 3.11 | PASS | Main hosted CI matrix |
 | Python 3.12 | PASS | Main hosted CI matrix |
 | Python 3.13 | PASS | Main hosted CI matrix |
-| Final metadata change reviewed/merged | PENDING | Review this documentation-only preparation |
-| `v2.0.0` public tag | NOT_PERFORMED | Separate explicit approval required |
-| GitHub Release | NOT_PERFORMED | Separate explicit approval required |
+| Metadata PR | PASS | [PR #2](https://github.com/RENJI04/prompt-injection-auditor/pull/2) |
+| Metadata PR CI | PASS | [Run 38355651930](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38355651930) |
+| Metadata merge | PASS | `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec` |
+| Final main CI | PASS | [Run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406) |
+| `v2.0.0` annotated tag | PERFORMED | Points to `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec` |
+| GitHub Release | PERFORMED | [RenGuard v2.0.0](https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0) |
+| Latest release | YES | Published at `2026-10-13T07:01:50Z` |
 | Repository rename | NOT_REQUIRED / NOT_PERFORMED | Optional naming decision |
 | Official live benchmark | NOT_REQUIRED / NOT_PERFORMED | Required only before quantitative live-performance claims |
 
 The `source_commit` in [`release/release-manifest.json`](release/release-manifest.json)
-identifies the validated main merge commit containing the release product content,
-not the later metadata commit. This avoids self-reference. Keep `RELEASE_CANDIDATE`
-until public publication is separately approved and completed.
+identifies the validated product-source merge, while the published `v2.0.0` tag points
+to the final metadata merge. This post-release synchronization is not part of that
+tagged artifact and does not change the source-commit semantics.

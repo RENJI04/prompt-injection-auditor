@@ -55,12 +55,11 @@ class BrandingTests(unittest.TestCase):
         self.assertIn("alt text", branding_readme.lower())
         self.assertNotIn("registered trademark", branding_readme.lower())
 
-    def test_github_publishing_guide_keeps_manual_gates_pending(self) -> None:
+    def test_github_publishing_guide_records_completed_manual_gates(self) -> None:
         guide = (ROOT / "release/GITHUB_PUBLISHING.md").read_text(encoding="utf-8")
         self.assertIn("RENJI04/prompt-injection-auditor", guide)
         self.assertIn("assets/branding/renguard-social-preview.png", guide)
-        self.assertIn("manual GitHub repository configuration", guide)
-        self.assertIn("PENDING", guide)
+        self.assertIn("MANUALLY_CONFIGURED", guide)
         self.assertIn("v2.0.0", guide)
         self.assertIn("RELEASE_NOTES.md", guide)
         self.assertIn("optional", guide.lower())
@@ -70,8 +69,10 @@ class BrandingTests(unittest.TestCase):
             "Repository topics applied",
             "Social Preview configured and crop verified",
             "Final metadata change reviewed/merged",
+            "`v2.0.0` annotated tag created",
+            "GitHub Release published",
         ):
-            self.assertIn(f"- [ ] {gate}", guide)
+            self.assertIn(f"- [x] {gate}", guide)
         self.assertIn("- [x] Main Python 3.10–3.13 matrix passes", guide)
 
     def test_release_checklist_tracks_branding_and_github_presentation(self) -> None:
@@ -81,10 +82,10 @@ class BrandingTests(unittest.TestCase):
         self.assertIn("About description prepared | PREPARED", checklist)
         self.assertIn("Repository topics prepared | PREPARED", checklist)
         self.assertIn("Social Preview asset prepared | PREPARED", checklist)
-        self.assertIn("Social Preview configuration | PENDING", checklist)
+        self.assertIn("Social Preview configuration | MANUALLY_CONFIGURED", checklist)
         self.assertIn("Main hosted CI | PASS", checklist)
 
-    def test_branding_docs_do_not_claim_publication_or_performance(self) -> None:
+    def test_branding_docs_record_publication_without_performance_claims(self) -> None:
         corpus = "\n".join(
             path.read_text(encoding="utf-8")
             for path in (
@@ -97,12 +98,11 @@ class BrandingTests(unittest.TestCase):
             if path.exists()
         ).lower()
         for forbidden in (
-            "v2.0.0 released",
-            "social preview is configured",
             "official v2 performance percentage",
             "production-ready",
         ):
             self.assertNotIn(forbidden, corpus)
+        self.assertIn("releases/tag/v2.0.0", corpus)
 
 
 if __name__ == "__main__":
