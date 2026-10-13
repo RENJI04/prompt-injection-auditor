@@ -1,50 +1,51 @@
-# GitHub publication guide
+# GitHub publication record
 
-This runbook records completed release-source prerequisites and prepares GitHub
-presentation for RenGuard v2.0.0. Remaining settings and publication actions require
-separate approval.
+This record documents the completed GitHub presentation and publication of RenGuard
+v2.0.0. It is historical evidence, not authorization to modify the published release or
+move its tag.
 
 ## Repository identity
 
 - Current repository: `RENJI04/prompt-injection-auditor`
 - Product: **RenGuard**
 - Release target: **v2.0.0**
-- Current state: **validated release candidate on main; not publicly released**
-- Validated main source: `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`
+- Current state: **published stable release**
+- Validated product source: `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`
+- Tagged repository state: `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`
 
 ## Recommended GitHub About description
 
 > Model-agnostic security auditing framework for AI systems, LLM applications, and
 > autonomous agents.
 
-Application status: **PENDING**. The current GitHub About metadata may still describe
-the historical project; it is not the current product specification.
+Application status: **PASS — applied and verified**.
 
 ## Recommended GitHub topics
 
 `ai-security`, `llm-security`, `agent-security`, `prompt-injection`, `rag-security`,
 `mcp`, `ai-agents`, `security`, `security-audit`, `owasp`
 
-Application status: **PENDING**.
+Application status: **PASS — applied and verified**.
 
 ## Social Preview
 
 Use [`assets/branding/renguard-social-preview.png`](../assets/branding/renguard-social-preview.png).
 
-Status: **PENDING — manual GitHub repository configuration required.** Committing the
-asset does not configure the repository setting. An authorized repository owner must
-select this file in the GitHub
-Social Preview settings and verify the rendered crop.
+Status: **MANUALLY_CONFIGURED**. An authorized repository owner selected this file in
+the GitHub Social Preview settings and verified the rendered crop. The committed asset
+alone is not evidence of configuration; this status records the completed manual step.
 
 ## Release presentation
 
 - Release title: **RenGuard v2.0.0**
 - Release tag: `v2.0.0`
+- Tagged commit: `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`
+- Release URL: <https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0>
+- Published at: `2026-10-13T07:01:50Z`
 - Release notes source: [`RELEASE_NOTES.md`](../RELEASE_NOTES.md)
 
-The release body must remain understandable without embedded images. Do not add a CI,
-performance, certification, or release badge until the underlying external event has
-actually occurred.
+The published release body remains understandable without embedded images. It contains
+no official live-model performance percentage or certification claim.
 
 ## Publication prerequisites
 
@@ -53,17 +54,19 @@ actually occurred.
 - [x] GitHub-hosted Python 3.10–3.13 matrix passes
 - [x] Release PR merged to main
 - [x] Main Python 3.10–3.13 matrix passes
-- [ ] GitHub About description applied
-- [ ] Repository topics applied
-- [ ] Social Preview configured and crop verified
-- [ ] Final metadata change reviewed/merged
-- [ ] `v2.0.0` tag explicitly approved
-- [ ] GitHub Release explicitly approved
+- [x] GitHub About description applied
+- [x] Repository topics applied
+- [x] Social Preview configured and crop verified
+- [x] Final metadata change reviewed/merged
+- [x] `v2.0.0` annotated tag created
+- [x] GitHub Release published
 
 Observed CI evidence: [RC push 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172),
 [release PR 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336),
-and [main merge 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797)
-all passed. The metadata preparation remains a follow-up review step.
+[main merge 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797),
+[metadata PR 38355651930](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38355651930),
+and [final main 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406)
+all passed.
 
 ## Optional repository rename
 
