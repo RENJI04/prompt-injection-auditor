@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PHASE11_CHECKPOINT = "835de825c0a587dc9932c5eaac75100ce2885f7b"
 VALIDATED_MAIN_COMMIT = "d8ec26b9b19f79f9a134f838ba2f4b3d34211963"
 TAGGED_RELEASE_COMMIT = "cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec"
-RELEASE_URL = "https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0"
+RELEASE_URL = "https://github.com/RENJI04/renguard/releases/tag/v2.0.0"
 
 
 class ReleaseReadinessTests(unittest.TestCase):
@@ -96,7 +96,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertEqual("PERFORMED", gates["push"])
         for name in ("public_tag", "github_release"):
             self.assertEqual("PERFORMED", gates[name])
-        self.assertEqual("NOT_PERFORMED", gates["repository_rename"])
+        self.assertEqual("PERFORMED", gates["repository_rename"])
         benchmark = gates["official_live_benchmark"]
         self.assertEqual("NOT_PERFORMED", benchmark["status"])
         self.assertFalse(benchmark["required_for_core_release"])

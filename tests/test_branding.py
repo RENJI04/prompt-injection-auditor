@@ -57,12 +57,12 @@ class BrandingTests(unittest.TestCase):
 
     def test_github_publishing_guide_records_completed_manual_gates(self) -> None:
         guide = (ROOT / "release/GITHUB_PUBLISHING.md").read_text(encoding="utf-8")
-        self.assertIn("RENJI04/prompt-injection-auditor", guide)
+        self.assertIn("RENJI04/renguard", guide)
         self.assertIn("assets/branding/renguard-social-preview.png", guide)
         self.assertIn("MANUALLY_CONFIGURED", guide)
         self.assertIn("v2.0.0", guide)
         self.assertIn("RELEASE_NOTES.md", guide)
-        self.assertIn("optional", guide.lower())
+        self.assertIn("repository rename", guide.lower())
         self.assertIn("renguard", guide.lower())
         for gate in (
             "GitHub About description applied",

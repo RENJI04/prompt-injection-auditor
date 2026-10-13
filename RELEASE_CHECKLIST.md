@@ -49,23 +49,23 @@ alone was not treated as evidence that the setting had been applied.
 |---|---|---|
 | Final RC approved | PASS | Branded RC `9141879401019e6172aec27748dff216cb63370d` |
 | RC pushed | PASS | Approved RC on remote `work` |
-| RC push hosted CI | PASS | [Run 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172) |
-| Release PR | PASS | [PR #1](https://github.com/RENJI04/prompt-injection-auditor/pull/1) |
-| PR CI | PASS | [Run 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336) |
+| RC push hosted CI | PASS | [Run 38337787172](https://github.com/RENJI04/renguard/actions/runs/38337787172) |
+| Release PR | PASS | [PR #1](https://github.com/RENJI04/renguard/pull/1) |
+| PR CI | PASS | [Run 38338406336](https://github.com/RENJI04/renguard/actions/runs/38338406336) |
 | Merge to main | PASS | Normal merge `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`; full checkpoint history retained |
-| Main hosted CI | PASS | [Run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797) |
+| Main hosted CI | PASS | [Run 38338862797](https://github.com/RENJI04/renguard/actions/runs/38338862797) |
 | Python 3.10 | PASS | Main hosted CI matrix |
 | Python 3.11 | PASS | Main hosted CI matrix |
 | Python 3.12 | PASS | Main hosted CI matrix |
 | Python 3.13 | PASS | Main hosted CI matrix |
-| Metadata PR | PASS | [PR #2](https://github.com/RENJI04/prompt-injection-auditor/pull/2) |
-| Metadata PR CI | PASS | [Run 38355651930](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38355651930) |
+| Metadata PR | PASS | [PR #2](https://github.com/RENJI04/renguard/pull/2) |
+| Metadata PR CI | PASS | [Run 38355651930](https://github.com/RENJI04/renguard/actions/runs/38355651930) |
 | Metadata merge | PASS | `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec` |
-| Final main CI | PASS | [Run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406) |
+| Final main CI | PASS | [Run 38356227406](https://github.com/RENJI04/renguard/actions/runs/38356227406) |
 | `v2.0.0` annotated tag | PERFORMED | Points to `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec` |
-| GitHub Release | PERFORMED | [RenGuard v2.0.0](https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0) |
+| GitHub Release | PERFORMED | [RenGuard v2.0.0](https://github.com/RENJI04/renguard/releases/tag/v2.0.0) |
 | Latest release | YES | Published at `2026-10-13T07:01:50Z` |
-| Repository rename | NOT_REQUIRED / NOT_PERFORMED | Optional naming decision |
+| Repository rename | PERFORMED | Current repository is `RENJI04/renguard` |
 | Official live benchmark | NOT_REQUIRED / NOT_PERFORMED | Required only before quantitative live-performance claims |
 
 The `source_commit` in [`release/release-manifest.json`](release/release-manifest.json)

@@ -48,13 +48,13 @@
     "push": "PERFORMED",
     "public_tag": "PERFORMED",
     "github_release": "PERFORMED",
-    "repository_rename": "NOT_PERFORMED"
+    "repository_rename": "PERFORMED"
   },
   "publication": {
     "tag": "v2.0.0",
     "tagged_commit": "cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec",
     "github_release": "RenGuard v2.0.0",
-    "release_url": "https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0",
+    "release_url": "https://github.com/RENJI04/renguard/releases/tag/v2.0.0",
     "published_at": "2026-10-13T07:01:50Z"
   },
   "source_commit_note": "The source_commit identifies the validated product-source merge containing the RenGuard v2.0.0 implementation. That commit passed GitHub-hosted Python 3.10–3.13 CI. The final tagged repository state is cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec; later metadata-only changes are not part of the tagged artifact, so self-referential commit binding is intentionally avoided.",

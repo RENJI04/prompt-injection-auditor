@@ -6,7 +6,7 @@ move its tag.
 
 ## Repository identity
 
-- Current repository: `RENJI04/prompt-injection-auditor`
+- Current repository: `RENJI04/renguard`
 - Product: **RenGuard**
 - Release target: **v2.0.0**
 - Current state: **published stable release**
@@ -40,7 +40,7 @@ alone is not evidence of configuration; this status records the completed manual
 - Release title: **RenGuard v2.0.0**
 - Release tag: `v2.0.0`
 - Tagged commit: `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`
-- Release URL: <https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0>
+- Release URL: <https://github.com/RENJI04/renguard/releases/tag/v2.0.0>
 - Published at: `2026-10-13T07:01:50Z`
 - Release notes source: [`RELEASE_NOTES.md`](../RELEASE_NOTES.md)
 
@@ -61,16 +61,16 @@ no official live-model performance percentage or certification claim.
 - [x] `v2.0.0` annotated tag created
 - [x] GitHub Release published
 
-Observed CI evidence: [RC push 38337787172](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38337787172),
-[release PR 38338406336](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338406336),
-[main merge 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797),
-[metadata PR 38355651930](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38355651930),
-and [final main 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406)
+Observed CI evidence: [RC push 38337787172](https://github.com/RENJI04/renguard/actions/runs/38337787172),
+[release PR 38338406336](https://github.com/RENJI04/renguard/actions/runs/38338406336),
+[main merge 38338862797](https://github.com/RENJI04/renguard/actions/runs/38338862797),
+[metadata PR 38355651930](https://github.com/RENJI04/renguard/actions/runs/38355651930),
+and [final main 38356227406](https://github.com/RENJI04/renguard/actions/runs/38356227406)
 all passed.
 
-## Optional repository rename
+## Repository rename
 
-A future rename from `prompt-injection-auditor` to `renguard` is optional and is not
-technically required for v2.0.0. Before any rename, check name availability, obtain
-explicit owner approval, and review links, integrations, automation, and downstream
-references. This guide does not claim that a rename has occurred.
+The repository was renamed to `RENJI04/renguard` after v2.0.0 publication. The rename
+did not move the annotated tag or change its tagged tree. Current editable documentation
+uses the canonical RenGuard repository identity; protected historical v1 provenance
+remains byte-identical.

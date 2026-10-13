@@ -258,7 +258,7 @@ No unreleased product changes.
 
 ### Phase 1 foundation
 
-- Began the internal rebrand from Prompt Injection Auditor to RenGuard.
+- Began the internal rebrand to RenGuard.
 - Kept `SKILL.md` as the core product and clarified the boundary between the
   provider-neutral audit methodology and host-specific skill compatibility.
 - Replaced Claude-exclusive positioning while retaining truthful Claude model metadata
@@ -275,7 +275,7 @@ No unreleased product changes.
 - Clarified that the original v1 OWASP mappings are approximate cross-references and
   that prompt hardening is one part of a defense-in-depth program.
 
-## 1.0.0 — Prompt Injection Auditor
+## 1.0.0 — Historical v1 release
 
 - Established the original skill-first prompt injection audit workflow.
 - Added the eight-category v1 taxonomy, hardening patterns, worked examples, eight
