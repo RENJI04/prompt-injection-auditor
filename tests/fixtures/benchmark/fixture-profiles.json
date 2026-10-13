@@ -1,0 +1,22 @@
+{
+  "fixture_only": true,
+  "model": "fixture-model",
+  "provider": "synthetic-adapter",
+  "profiles": [
+    "perfect",
+    "mixed",
+    "false_negative",
+    "false_positive",
+    "wrong_technique",
+    "wrong_severity",
+    "risk_score_error",
+    "confidence_mismatch",
+    "unparseable",
+    "partial",
+    "redaction_failure",
+    "wrong_framework",
+    "unstable",
+    "judge-uncertainty"
+  ],
+  "warning": "These deterministic profiles test runner behavior and are not RenGuard performance results."
+}

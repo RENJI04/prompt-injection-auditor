@@ -1,0 +1,58 @@
+{
+  "registry_version": "1.0.0",
+  "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+  "artifact_contract_version": "0.1.0",
+  "compatibility_policy": {
+    "patch": "Backward-compatible clarification or constraint correction that keeps existing valid artifacts valid.",
+    "minor": "Backward-compatible optional fields or extensions.",
+    "major": "Breaking contract change requiring explicit migration.",
+    "pre_1_0": "Only explicitly registered versions are supported; no compatibility is inferred across 0.x versions."
+  },
+  "schemas": {
+    "eval.scenario": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:eval:scenario:1.0.0",
+      "path": "eval/scenario.schema.json"
+    },
+    "eval.suite_manifest": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:eval:suite-manifest:1.0.0",
+      "path": "eval/suite-manifest.schema.json"
+    },
+    "eval.mutations": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:eval:mutations:1.0.0",
+      "path": "eval/mutations.schema.json"
+    },
+    "benchmark.run_manifest": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:run-manifest:1.0.0",
+      "path": "benchmark/run-manifest.schema.json"
+    },
+    "benchmark.response_record": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:response-record:1.0.0",
+      "path": "benchmark/response-record.schema.json"
+    },
+    "benchmark.score_record": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:score-record:1.0.0",
+      "path": "benchmark/score-record.schema.json"
+    },
+    "benchmark.summary": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:summary:1.0.0",
+      "path": "benchmark/summary.schema.json"
+    },
+    "benchmark.review_record": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:review-record:1.0.0",
+      "path": "benchmark/review-record.schema.json"
+    },
+    "benchmark.pricing": {
+      "version": "1.0.0",
+      "id": "urn:renguard:schema:benchmark:pricing:1.0.0",
+      "path": "benchmark/pricing.schema.json"
+    }
+  }
+}

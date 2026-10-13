@@ -1,0 +1,55 @@
+{
+  "product": "RenGuard",
+  "release_target": "2.0.0",
+  "product_version_source": "SKILL.md frontmatter",
+  "source_checkpoint": "835de825c0a587dc9932c5eaac75100ce2885f7b",
+  "source_commit": null,
+  "phase": 12,
+  "release_status": "RELEASE_CANDIDATE",
+  "local_release_validation": "PASS",
+  "contract_versions": {
+    "public_evaluation_suite": "0.1.0",
+    "benchmark_runner": "0.1.0",
+    "benchmark_scoring": "0.1.0",
+    "benchmark_artifact_schema": "0.1.0",
+    "schema_registry": "1.0.0",
+    "schema_versions": [
+      "1.0.0"
+    ]
+  },
+  "counts": {
+    "techniques": 38,
+    "technique_status": {
+      "CORE": 33,
+      "PARTIAL": 5,
+      "PLANNED": 0
+    },
+    "hardening_patterns": 27,
+    "public_scenarios": 72,
+    "mutations": 15,
+    "schemas": 9
+  },
+  "python_compatibility_evidence": {
+    "ci_target_matrix": [
+      "3.10",
+      "3.11",
+      "3.12",
+      "3.13"
+    ],
+    "locally_verified": "3.12.14",
+    "hosted_ci": "PENDING"
+  },
+  "external_gates": {
+    "hosted_ci": "PENDING",
+    "official_live_benchmark": {
+      "required_for_core_release": false,
+      "status": "NOT_PERFORMED"
+    },
+    "push": "NOT_PERFORMED",
+    "public_tag": "NOT_PERFORMED",
+    "github_release": "NOT_PERFORMED",
+    "repository_rename": "NOT_PERFORMED"
+  },
+  "source_commit_note": "Pending until the Phase 12 release-candidate changes are committed; source_checkpoint records the reviewed Phase 11 base without fabricating a future commit.",
+  "publication_note": "This manifest records local release readiness. It does not represent a public tag, GitHub release, hosted-CI result, or live-model performance result."
+}

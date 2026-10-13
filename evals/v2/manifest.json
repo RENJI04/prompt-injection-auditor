@@ -1,0 +1,478 @@
+{
+  "suite_name": "RenGuard v2 Public Evaluation Suite",
+  "suite_version": "0.1.0",
+  "created_for_phase": 8,
+  "source_checkpoint": "9bb240491a84dd519c931565929bd053e0ffa47d",
+  "public_visibility": "PUBLIC",
+  "historical_v1_separation": "Separate from provenance-preserved evals/evals.json, evals/files/, and benchmarks/benchmark.json; no v2 model results exist.",
+  "scenario_files": [
+    "direct-authority.json",
+    "rag-retrieval.json",
+    "hidden-context.json",
+    "tools.json",
+    "mcp.json",
+    "memory.json",
+    "agentic.json",
+    "multimodal.json",
+    "output-sinks.json",
+    "cross-cutting.json",
+    "clean-controls.json"
+  ],
+  "scenario_count": 72,
+  "category_counts": {
+    "AGENTIC": 6,
+    "CLEAN_CONTROLS": 12,
+    "CROSS_CUTTING": 3,
+    "DIRECT_AUTHORITY": 8,
+    "HIDDEN_CONTEXT": 5,
+    "MCP": 7,
+    "MEMORY": 5,
+    "MULTIMODAL": 5,
+    "OUTPUT_SINKS": 7,
+    "RAG_RETRIEVAL": 7,
+    "TOOLS": 7
+  },
+  "kind_counts": {
+    "ATTACK": 35,
+    "BOUNDARY": 8,
+    "CHAIN": 19,
+    "CLEAN": 10
+  },
+  "language_counts": {
+    "ar": 3,
+    "en": 52,
+    "es": 4,
+    "fr": 5,
+    "ja": 3,
+    "ru": 3,
+    "zh-CN": 4
+  },
+  "multi_turn_count": 12,
+  "attack_chain_count": 19,
+  "exact_score_count": 12,
+  "non_english_or_mixed_count": 22,
+  "technique_coverage_count": 38,
+  "technique_coverage": [
+    {
+      "technique_id": "RG-AG-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-033",
+        "RG-EVAL-V2-040",
+        "RG-EVAL-V2-072"
+      ]
+    },
+    {
+      "technique_id": "RG-AG-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-041",
+        "RG-EVAL-V2-043",
+        "RG-EVAL-V2-072"
+      ]
+    },
+    {
+      "technique_id": "RG-AG-003",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-042",
+        "RG-EVAL-V2-059"
+      ]
+    },
+    {
+      "technique_id": "RG-AG-004",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-044"
+      ]
+    },
+    {
+      "technique_id": "RG-AG-005",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-043",
+        "RG-EVAL-V2-045"
+      ]
+    },
+    {
+      "technique_id": "RG-EX-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-026",
+        "RG-EVAL-V2-051",
+        "RG-EVAL-V2-056",
+        "RG-EVAL-V2-069"
+      ]
+    },
+    {
+      "technique_id": "RG-HC-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-016"
+      ]
+    },
+    {
+      "technique_id": "RG-HC-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-017"
+      ]
+    },
+    {
+      "technique_id": "RG-HC-003",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-018",
+        "RG-EVAL-V2-020",
+        "RG-EVAL-V2-030"
+      ]
+    },
+    {
+      "technique_id": "RG-HC-004",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-010",
+        "RG-EVAL-V2-019",
+        "RG-EVAL-V2-037"
+      ]
+    },
+    {
+      "technique_id": "RG-ME-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 4,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-035",
+        "RG-EVAL-V2-036",
+        "RG-EVAL-V2-038",
+        "RG-EVAL-V2-039",
+        "RG-EVAL-V2-066"
+      ]
+    },
+    {
+      "technique_id": "RG-ME-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-036",
+        "RG-EVAL-V2-037",
+        "RG-EVAL-V2-066"
+      ]
+    },
+    {
+      "technique_id": "RG-MI-001",
+      "coverage_status": "PARTIAL",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-045",
+        "RG-EVAL-V2-060"
+      ]
+    },
+    {
+      "technique_id": "RG-MM-001",
+      "coverage_status": "PARTIAL",
+      "positive_scenario_count": 5,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-046",
+        "RG-EVAL-V2-047",
+        "RG-EVAL-V2-048",
+        "RG-EVAL-V2-049",
+        "RG-EVAL-V2-050",
+        "RG-EVAL-V2-068"
+      ]
+    },
+    {
+      "technique_id": "RG-OU-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 8,
+      "boundary_clean_scenario_count": 3,
+      "scenario_ids": [
+        "RG-EVAL-V2-050",
+        "RG-EVAL-V2-051",
+        "RG-EVAL-V2-052",
+        "RG-EVAL-V2-053",
+        "RG-EVAL-V2-054",
+        "RG-EVAL-V2-055",
+        "RG-EVAL-V2-056",
+        "RG-EVAL-V2-057",
+        "RG-EVAL-V2-064",
+        "RG-EVAL-V2-069",
+        "RG-EVAL-V2-071"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-001",
+        "RG-EVAL-V2-002",
+        "RG-EVAL-V2-061"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-015",
+        "RG-EVAL-V2-047",
+        "RG-EVAL-V2-062"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-003",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-009",
+        "RG-EVAL-V2-011",
+        "RG-EVAL-V2-049",
+        "RG-EVAL-V2-067"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-004",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-014"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-005",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-004"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-006",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-006",
+        "RG-EVAL-V2-063"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-007",
+      "coverage_status": "PARTIAL",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-008"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-008",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-003"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-009",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-005",
+        "RG-EVAL-V2-006"
+      ]
+    },
+    {
+      "technique_id": "RG-PI-010",
+      "coverage_status": "PARTIAL",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-007"
+      ]
+    },
+    {
+      "technique_id": "RG-PR-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 4,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-002",
+        "RG-EVAL-V2-027",
+        "RG-EVAL-V2-046",
+        "RG-EVAL-V2-048",
+        "RG-EVAL-V2-065"
+      ]
+    },
+    {
+      "technique_id": "RG-PR-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-021",
+        "RG-EVAL-V2-031"
+      ]
+    },
+    {
+      "technique_id": "RG-PR-003",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-005",
+        "RG-EVAL-V2-025",
+        "RG-EVAL-V2-044"
+      ]
+    },
+    {
+      "technique_id": "RG-RA-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-011",
+        "RG-EVAL-V2-013"
+      ]
+    },
+    {
+      "technique_id": "RG-RA-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 4,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-010",
+        "RG-EVAL-V2-012",
+        "RG-EVAL-V2-019",
+        "RG-EVAL-V2-038",
+        "RG-EVAL-V2-067"
+      ]
+    },
+    {
+      "technique_id": "RG-RA-003",
+      "coverage_status": "PARTIAL",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-013"
+      ]
+    },
+    {
+      "technique_id": "RG-RC-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 2,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-042",
+        "RG-EVAL-V2-059"
+      ]
+    },
+    {
+      "technique_id": "RG-SC-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-029",
+        "RG-EVAL-V2-032",
+        "RG-EVAL-V2-058"
+      ]
+    },
+    {
+      "technique_id": "RG-TL-001",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 3,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-021",
+        "RG-EVAL-V2-026",
+        "RG-EVAL-V2-028",
+        "RG-EVAL-V2-070"
+      ]
+    },
+    {
+      "technique_id": "RG-TL-002",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 4,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-020",
+        "RG-EVAL-V2-022",
+        "RG-EVAL-V2-032",
+        "RG-EVAL-V2-033"
+      ]
+    },
+    {
+      "technique_id": "RG-TL-003",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 1,
+      "boundary_clean_scenario_count": 0,
+      "scenario_ids": [
+        "RG-EVAL-V2-023"
+      ]
+    },
+    {
+      "technique_id": "RG-TL-004",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 4,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-012",
+        "RG-EVAL-V2-024",
+        "RG-EVAL-V2-034",
+        "RG-EVAL-V2-057",
+        "RG-EVAL-V2-065"
+      ]
+    },
+    {
+      "technique_id": "RG-TL-005",
+      "coverage_status": "CORE",
+      "positive_scenario_count": 6,
+      "boundary_clean_scenario_count": 1,
+      "scenario_ids": [
+        "RG-EVAL-V2-009",
+        "RG-EVAL-V2-014",
+        "RG-EVAL-V2-025",
+        "RG-EVAL-V2-030",
+        "RG-EVAL-V2-031",
+        "RG-EVAL-V2-054",
+        "RG-EVAL-V2-070"
+      ]
+    }
+  ],
+  "mutation_count": 15,
+  "mutation_file": "mutations.json",
+  "holdout_policy": "HOLDOUT_POLICY.md",
+  "results_status": "TEST_DEFINITIONS_ONLY_NO_MODEL_RESULTS"
+}

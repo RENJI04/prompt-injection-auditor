@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:review-record:1.0.0",
+  "title": "RenGuard offline review record",
+  "description": "A review-queue item or an imported human decision; personal reviewer identity is optional.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["run_id", "execution_key", "scenario_id", "condition", "run_index", "target_response", "machine_result", "judge_result", "unresolved_assertions", "disputed_assertions"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "execution_key": {"type": "string"},
+        "scenario_id": {"type": "string", "pattern": "^RG-EVAL-V2-[0-9]{3}$"},
+        "condition": {"enum": ["RENGuard", "BASELINE"]},
+        "run_index": {"type": "integer", "minimum": 1},
+        "target_response": {"type": ["string", "null"]},
+        "machine_result": {"type": "object", "additionalProperties": true},
+        "judge_result": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"type": "object", "additionalProperties": true}}]},
+        "unresolved_assertions": {"type": "array", "items": {"type": "string"}},
+        "disputed_assertions": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["execution_key", "assertion_group", "decision"],
+      "properties": {
+        "execution_key": {"type": "string", "minLength": 1},
+        "assertion_group": {"type": "string", "minLength": 1},
+        "decision": {"enum": ["PASS", "FAIL", "UNRESOLVED"]},
+        "reviewer_label": {"type": "string"},
+        "notes": {"type": "string"},
+        "timestamp": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  ]
+}

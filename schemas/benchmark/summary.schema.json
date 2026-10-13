@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:summary:1.0.0",
+  "title": "RenGuard benchmark summary",
+  "description": "Machine-readable aggregate results with nullable undefined metrics and disclosed limitations.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "suite", "condition", "model", "judge", "counts", "confusion_matrix", "core_metrics", "semantic_pass_rate", "semantic_pass_confidence_interval", "assertion_group_metrics", "risk_metrics", "technique_metrics", "framework_mapping_metrics", "security_property_metrics", "confidence_metrics", "redaction_metrics", "format_metrics", "clean_controls", "attack_recall", "boundary", "breakdowns", "stability", "latency", "canonical_vs_mutation", "latency_note", "token_usage", "cost", "statistical_unit", "limitations"],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "suite": {"type": "object", "additionalProperties": true},
+    "condition": {"type": "array", "minItems": 1, "items": {"enum": ["RENGuard", "BASELINE"]}},
+    "model": {"type": "object", "additionalProperties": true},
+    "judge": {"type": "object", "additionalProperties": true},
+    "counts": {"$ref": "#/$defs/countMap"},
+    "confusion_matrix": {"$ref": "#/$defs/countMap"},
+    "core_metrics": {"type": "object", "additionalProperties": true},
+    "semantic_pass_rate": {"$ref": "#/$defs/nullableRate"},
+    "semantic_pass_confidence_interval": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/confidenceInterval"}]},
+    "assertion_group_metrics": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+    "risk_metrics": {"type": "object", "additionalProperties": true},
+    "technique_metrics": {"type": "object", "additionalProperties": true},
+    "framework_mapping_metrics": {"type": "object", "additionalProperties": true},
+    "security_property_metrics": {"type": "object", "additionalProperties": true},
+    "confidence_metrics": {"type": "object", "additionalProperties": true},
+    "redaction_metrics": {"type": "object", "additionalProperties": true},
+    "format_metrics": {"type": "object", "additionalProperties": true},
+    "clean_controls": {"type": "object", "additionalProperties": true},
+    "attack_recall": {"type": "object", "additionalProperties": true},
+    "boundary": {"type": "object", "additionalProperties": true},
+    "breakdowns": {"type": "object", "additionalProperties": true},
+    "stability": {"type": "array", "items": {"$ref": "#/$defs/stability"}},
+    "latency": {"type": "object", "additionalProperties": true},
+    "canonical_vs_mutation": {"type": "object", "additionalProperties": true},
+    "latency_note": {"type": "string"},
+    "token_usage": {"type": "object", "additionalProperties": true},
+    "cost": {"type": "object", "required": ["status"], "properties": {"status": {"type": "string"}}, "additionalProperties": true},
+    "statistical_unit": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "countMap": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "nullableRate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "confidenceInterval": {
+      "type": "object",
+      "required": ["successes", "total", "confidence", "low", "high"],
+      "properties": {
+        "successes": {"type": "integer", "minimum": 0},
+        "total": {"type": "integer", "minimum": 0},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "low": {"$ref": "#/$defs/nullableRate"},
+        "high": {"$ref": "#/$defs/nullableRate"}
+      },
+      "additionalProperties": false
+    },
+    "stability": {
+      "type": "object",
+      "required": ["runtime_id", "condition", "resolved_runs", "passes", "failures", "unresolved", "pass_proportion", "classification"],
+      "properties": {
+        "runtime_id": {"type": "string"},
+        "condition": {"enum": ["RENGuard", "BASELINE"]},
+        "resolved_runs": {"type": "integer", "minimum": 0},
+        "passes": {"type": "integer", "minimum": 0},
+        "failures": {"type": "integer", "minimum": 0},
+        "unresolved": {"type": "integer", "minimum": 0},
+        "pass_proportion": {"$ref": "#/$defs/nullableRate"},
+        "classification": {"enum": ["STABLE_PASS", "MOSTLY_PASS", "UNSTABLE", "MOSTLY_FAIL", "STABLE_FAIL", "UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}

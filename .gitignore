@@ -4,7 +4,7 @@
 .env.*
 *.env
 
-# Claude CLI / IDE config
+# Local AI tool / IDE config
 .claude/
 .vscode/
 .idea/
@@ -15,6 +15,10 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 *.egg-info/
 dist/
 build/
@@ -53,6 +57,7 @@ desktop.ini
 
 # Eval run artifacts
 evals/runs/
+benchmark-runs/
 
 # Temporary / run artifacts
 *.tmp

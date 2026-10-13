@@ -1,5 +1,15 @@
 {
   "metadata": {
+    "artifact_status": "historical_v1",
+    "project_name_at_run": "Prompt Injection Auditor",
+    "benchmark_corpus": {
+      "name": "Prompt Injection Auditor v1 eval corpus",
+      "source_commit": "c2e8de497b7550ca3ca4df081efae27ddd28d582",
+      "eval_definitions_path": "evals/evals.json",
+      "fixtures_path": "evals/files/",
+      "current_worktree_corpus_is_source": false,
+      "note": "Resolve the eval definitions and fixtures at source_commit. The current worktree contains RenGuard v2-alpha eval data and is not the corpus that produced these results."
+    },
     "skill_name": "prompt-injection-auditor",
     "skill_path": "skills/prompt-injection-auditor",
     "executor_model": "claude-sonnet-4-6",
@@ -718,8 +728,18 @@
     }
   ],
   "run_summary": {
+    "metric_definitions": {
+      "assertion_pass_rate": "Total passed assertions divided by total assertions (micro average).",
+      "mean_eval_pass_rate": "Arithmetic mean of passed / total for each eval run (macro average)."
+    },
     "with_skill": {
-      "pass_rate": {
+      "assertions": {
+        "passed": 40,
+        "failed": 1,
+        "total": 41
+      },
+      "assertion_pass_rate": 0.9756,
+      "mean_eval_pass_rate": {
         "mean": 0.9792,
         "stddev": 0.0589,
         "min": 0.8333,
@@ -739,7 +759,13 @@
       }
     },
     "without_skill": {
-      "pass_rate": {
+      "assertions": {
+        "passed": 28,
+        "failed": 13,
+        "total": 41
+      },
+      "assertion_pass_rate": 0.6829,
+      "mean_eval_pass_rate": {
         "mean": 0.7042,
         "stddev": 0.2892,
         "min": 0.1667,
@@ -759,19 +785,20 @@
       }
     },
     "delta": {
-      "pass_rate": "+0.27",
-      "time_seconds": "+22.6",
-      "tokens": "+2272"
+      "assertion_pass_rate": 0.2927,
+      "mean_eval_pass_rate": 0.275,
+      "time_seconds": 22.6125,
+      "tokens": 2272.0
     }
   },
   "notes": [
-    "WITH_SKILL average pass rate: 97.9% vs WITHOUT_SKILL: 70.4% (delta: +27.5%)",
-    "Eval 8 (hardened-prompt-validation) with_skill scored 0% due to over-calibrated injection resistance: agent interpreted eval task metadata as a prompt injection attempt (false positive on legitimate eval framing)",
+    "Assertion pass rate (micro): WITH_SKILL 40/41 (97.56%) vs WITHOUT_SKILL 28/41 (68.29%), a 29.27 percentage-point difference.",
+    "Mean eval pass rate (macro): WITH_SKILL 97.92% vs WITHOUT_SKILL 70.42%, a 27.50 percentage-point difference.",
+    "Eval 8 (hardened-prompt-validation) with_skill and without_skill each scored 5/5 (100%).",
     "Evals 3 and 7 (clean/minimal prompts) both configurations perform well -- skill correctly avoids false positives",
     "Biggest gains on evals 1-2 (vulnerable prompts): skill provides structured PoC + hardened rewrite framework that baseline lacks",
     "Without-skill runs consistently miss: vulnerability table (no structured format), Exploit PoC sections, and Hardened Rewrite sections",
-    "Eval 8 without_skill scored 100% -- identifies defensive measures correctly without the skill's heightened injection detection",
-    "Skill adds ~2.5s average overhead vs baseline -- acceptable for a security audit use case",
-    "Eval 4 with_skill missed assertion 4e (hardened rewrite no credentials) due to grader false negative: skill correctly excludes credentials from rewrite but mentions them in the 'rotate immediately' section"
+    "Mean execution time was 126.3 seconds WITH_SKILL and 103.6875 seconds WITHOUT_SKILL, a 22.6125-second difference in this historical run.",
+    "Eval 4 with_skill recorded assertion 4e as failed; the stored artifact does not establish whether that result reflects model output or grader behavior."
   ]
 }

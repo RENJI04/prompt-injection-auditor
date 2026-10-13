@@ -1,5 +1,8 @@
 {
-  "skill_name": "prompt-injection-auditor",
+  "skill_name": "renguard",
+  "corpus_status": "current_renguard_v2_alpha",
+  "historical_benchmark_source_commit": "c2e8de497b7550ca3ca4df081efae27ddd28d582",
+  "historical_benchmark_note": "The historical v1 benchmark used evals/evals.json and evals/files/ at the source commit above, not this current corpus.",
   "evals": [
     {
       "id": 1,

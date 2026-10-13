@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:renguard:schema:benchmark:score-record:1.0.0",
+  "title": "RenGuard benchmark score record",
+  "description": "Machine scoring plus optional judge and human overlays. Artifact version is inherited from the containing run manifest.",
+  "type": "object",
+  "required": ["scenario_id", "kind", "category", "parser_state", "parser_errors", "assertion_groups", "security_detection_outcome", "semantic_outcome", "reported_techniques", "risk_assessment", "execution_key", "runtime_id", "condition", "run_index", "mutation_id", "language", "primary_technique", "risk_severity", "expected_confidence", "multi_turn", "attack_chain", "machine_result", "judge_result", "human_result", "final_adjudication_source"],
+  "properties": {
+    "scenario_id": {"type": "string", "pattern": "^RG-EVAL-V2-[0-9]{3}$"},
+    "kind": {"enum": ["ATTACK", "CLEAN", "BOUNDARY", "CHAIN"]},
+    "category": {"type": "string"},
+    "parser_state": {"enum": ["PARSED", "PARTIALLY_PARSED", "UNPARSEABLE"]},
+    "parser_errors": {"type": "array", "items": {"type": "string"}},
+    "assertion_groups": {"$ref": "#/$defs/assertionGroups"},
+    "security_detection_outcome": {"$ref": "#/$defs/outcome"},
+    "semantic_outcome": {"enum": ["PASS", "FAIL", "UNRESOLVED"]},
+    "reported_techniques": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "risk_assessment": {"type": "object", "additionalProperties": true},
+    "execution_key": {"type": "string", "minLength": 1},
+    "runtime_id": {"type": "string", "minLength": 1},
+    "condition": {"enum": ["RENGuard", "BASELINE"]},
+    "run_index": {"type": "integer", "minimum": 1},
+    "mutation_id": {"type": ["string", "null"], "pattern": "^RG-MUT-[0-9]{3}$"},
+    "language": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
+    "primary_technique": {"type": ["string", "null"]},
+    "risk_severity": {"type": ["string", "null"]},
+    "expected_confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+    "multi_turn": {"type": "boolean"},
+    "attack_chain": {"type": "boolean"},
+    "machine_result": {
+      "type": "object",
+      "required": ["assertion_groups", "semantic_outcome"],
+      "properties": {
+        "assertion_groups": {"$ref": "#/$defs/assertionGroups"},
+        "semantic_outcome": {"enum": ["PASS", "FAIL", "UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    },
+    "judge_result": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "array", "items": {"$ref": "#/$defs/judgeResult"}}
+      ]
+    },
+    "human_result": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "array", "items": {"$ref": "#/$defs/humanResult"}}
+      ]
+    },
+    "final_adjudication_source": {"enum": ["MACHINE", "JUDGE", "MACHINE_WITH_UNRESOLVED_JUDGE", "HUMAN"]}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "outcome": {"enum": ["PASS", "FAIL", "UNRESOLVED", "NOT_APPLICABLE"]},
+    "assertionResult": {
+      "type": "object",
+      "required": ["outcome", "detail"],
+      "properties": {"outcome": {"$ref": "#/$defs/outcome"}, "detail": {"type": "string"}},
+      "additionalProperties": true
+    },
+    "assertionGroups": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/assertionResult"}},
+    "judgeResult": {
+      "type": "object",
+      "required": ["assertion_group", "verdict", "rationale", "evidence_excerpt", "relationship"],
+      "properties": {
+        "assertion_group": {"type": "string"},
+        "verdict": {"enum": ["PASS", "FAIL", "UNCERTAIN"]},
+        "rationale": {"type": "string"},
+        "evidence_excerpt": {"type": "string"},
+        "relationship": {"enum": ["SAME_MODEL", "SAME_PROVIDER_DIFFERENT_MODEL", "DIFFERENT_PROVIDER", "HUMAN"]}
+      },
+      "additionalProperties": false
+    },
+    "humanResult": {
+      "type": "object",
+      "required": ["assertion_group", "decision"],
+      "properties": {
+        "assertion_group": {"type": "string"},
+        "decision": {"enum": ["PASS", "FAIL", "UNRESOLVED"]},
+        "reviewer_label": {"type": ["string", "null"]},
+        "notes": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    }
+  }
+}
