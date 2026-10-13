@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/branding/renguard-social-preview.png" alt="RenGuard — Model-Agnostic Security for AI Systems &amp; Agents" width="900">
+</p>
+
 # RenGuard
 
 > **Model-Agnostic Security for AI Systems & Agents**
@@ -274,11 +278,14 @@ Read [benchmark methodology](BENCHMARKING.md), the
 | [Security policy](SECURITY.md) | Vulnerability-reporting guidance |
 | [Release notes](RELEASE_NOTES.md) | v2.0.0 release-candidate capabilities and limitations |
 | [Release checklist](RELEASE_CHECKLIST.md) | Local evidence and pending publication gates |
+| [GitHub publishing guide](release/GITHUB_PUBLISHING.md) | Prepared About text, topics, Social Preview asset, and pending publication steps |
+| [Branding assets](assets/branding/README.md) | Approved icon, wordmark, banner, and accessibility guidance |
 
 ## Repository structure
 
 ```text
 prompt-injection-auditor/
+├── assets/branding/          # Approved RenGuard visual identity
 ├── SKILL.md                 # Core RenGuard Skill
 ├── references/              # Security specifications and catalogs
 ├── docs/                    # Reader-oriented architecture, threat model, and usage
@@ -287,6 +294,7 @@ prompt-injection-auditor/
 ├── scripts/                 # Validation and offline benchmark tooling
 ├── schemas/                 # Draft 2020-12 artifact contracts
 ├── tests/                   # Offline regression tests
+├── release/                 # Release readiness and GitHub publication guidance
 ├── .github/workflows/       # Configured model-offline CI
 ├── BENCHMARKING.md
 ├── CONTRIBUTING.md
@@ -306,7 +314,9 @@ implemented. The `version` field in `SKILL.md` is the canonical prepared product
 
 See the [release notes](RELEASE_NOTES.md),
 [release checklist](RELEASE_CHECKLIST.md), and
-[machine-readable readiness manifest](release/release-manifest.json). Successful
+[GitHub publishing guide](release/GITHUB_PUBLISHING.md). The
+[machine-readable readiness manifest](release/release-manifest.json) preserves the
+release state and contract versions. Successful
 GitHub-hosted CI and explicit publication approval remain external gates.
 
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was

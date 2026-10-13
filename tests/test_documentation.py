@@ -15,6 +15,8 @@ CORE_DOCS = (
     "SECURITY.md",
     "RELEASE_NOTES.md",
     "RELEASE_CHECKLIST.md",
+    "assets/branding/README.md",
+    "release/GITHUB_PUBLISHING.md",
     "docs/architecture.md",
     "docs/threat-model.md",
     "docs/usage.md",

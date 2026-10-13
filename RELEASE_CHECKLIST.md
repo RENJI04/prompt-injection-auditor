@@ -19,6 +19,29 @@ a tag or GitHub release exists.
 | Historical and protected-file provenance | PASS | Phase 12 hash/diff checks |
 | Release notes and metadata consistency | PASS | Phase 12 release-readiness tests |
 
+## Branding assets
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Approved icon present | PASS | `assets/branding/renguard-icon.png` |
+| Approved wordmark present | PASS | `assets/branding/renguard-wordmark.png` |
+| Approved social-preview asset present | PASS | `assets/branding/renguard-social-preview.png` |
+| PNG signatures and dimensions | PASS | Standard-library branding regression test |
+| README hero uses approved local branding | PASS | Accessible local banner with live project text |
+| Relative branding paths | PASS | Offline documentation-link regression test |
+
+## GitHub presentation
+
+| Gate | Status | Requirement |
+|---|---|---|
+| About description prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
+| Repository topics prepared | PREPARED | See `release/GITHUB_PUBLISHING.md` |
+| Social Preview asset prepared | PREPARED | Use `assets/branding/renguard-social-preview.png` |
+| Social Preview configuration | PENDING | Manual GitHub repository configuration required after push |
+
+The prepared Social Preview file is not evidence that the GitHub repository setting has
+already been configured.
+
 ## External and publication gates
 
 | Gate | Status | Requirement |
