@@ -4,6 +4,8 @@
 
 # RenGuard
 
+[![CI](https://github.com/RENJI04/prompt-injection-auditor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RENJI04/prompt-injection-auditor/actions/workflows/ci.yml?query=branch%3Amain)
+
 > **Model-Agnostic Security for AI Systems & Agents**
 
 RenGuard is a model-agnostic security auditing Skill and framework for AI systems and
@@ -11,9 +13,11 @@ agents. It helps reviewers identify trust-boundary failures, map findings to a s
 technique taxonomy, assess evidence-bounded risk, and recommend defense in depth across
 prompts, retrieval, memory, tools, MCP, agents, multimodal inputs, and output sinks.
 
-The RenGuard v2 release candidate is prepared for the `2.0.0` release target and has
-passed local repository validation. It has not been tagged or published, hosted CI is
-pending, and no official RenGuard v2 live benchmark has been published.
+The RenGuard v2 release candidate is on `main` for the `2.0.0` release target and has
+passed local repository validation and GitHub-hosted Python 3.10–3.13 CI. The validated
+main release source is `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`. It has not been
+tagged or published as a GitHub Release, and no official RenGuard v2 live benchmark
+has been published.
 
 ## What RenGuard is—and is not
 
@@ -316,13 +320,13 @@ See the [release notes](RELEASE_NOTES.md),
 [release checklist](RELEASE_CHECKLIST.md), and
 [GitHub publishing guide](release/GITHUB_PUBLISHING.md). The
 [machine-readable readiness manifest](release/release-manifest.json) preserves the
-release state and contract versions. Successful
-GitHub-hosted CI and explicit publication approval remain external gates.
+release state and contract versions. GitHub-hosted CI passed for the validated main
+source; metadata review and explicit publication approval remain pending.
 
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
-performed on Python 3.12.14 only; Python 3.10, 3.11, and 3.13 remain target versions
-pending a successful GitHub-hosted matrix run. Treat the range as targeted
-compatibility—not hosted-verified support. No hosted-CI PASS is claimed here.
+performed on Python 3.12.14 only. GitHub-hosted CI subsequently passed on Python 3.10,
+3.11, 3.12, and 3.13 for the validated main release source in
+[run 38338862797](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38338862797).
 
 Run the same dependency-free quality gate configured for CI:
 
