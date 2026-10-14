@@ -6,13 +6,13 @@ Release status: **published**. RenGuard v2.0.0 was published on 2026-10-13.
 
 - Tag: `v2.0.0`
 - Tagged commit: `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`
-- GitHub Release: <https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0>
+- GitHub Release: <https://github.com/RENJI04/renguard/releases/tag/v2.0.0>
 - Published at: `2026-10-13T07:01:50Z`
 
 The validated product source remains
 `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`. GitHub-hosted Python 3.10–3.13 CI
 passed for the final tagged repository state in
-[run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406).
+[run 38356227406](https://github.com/RENJI04/renguard/actions/runs/38356227406).
 This later post-release metadata synchronization is not part of the tagged artifact.
 
 ## Overview

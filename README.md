@@ -4,7 +4,7 @@
 
 # RenGuard
 
-[![CI](https://github.com/RENJI04/prompt-injection-auditor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RENJI04/prompt-injection-auditor/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI](https://github.com/RENJI04/renguard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RENJI04/renguard/actions/workflows/ci.yml?query=branch%3Amain)
 
 > **Model-Agnostic Security for AI Systems & Agents**
 
@@ -13,7 +13,7 @@ agents. It helps reviewers identify trust-boundary failures, map findings to a s
 technique taxonomy, assess evidence-bounded risk, and recommend defense in depth across
 prompts, retrieval, memory, tools, MCP, agents, multimodal inputs, and output sinks.
 
-The current stable release is [RenGuard v2.0.0](https://github.com/RENJI04/prompt-injection-auditor/releases/tag/v2.0.0),
+The current stable release is [RenGuard v2.0.0](https://github.com/RENJI04/renguard/releases/tag/v2.0.0),
 published on 2026-10-13 from tagged commit
 `cb2ad88029bb224d9cfe0dd58b2339a0bb6fdaec`. The validated product source is
 `d8ec26b9b19f79f9a134f838ba2f4b3d34211963`; GitHub-hosted Python 3.10–3.13 CI
@@ -110,6 +110,8 @@ RenGuard is a Skill/framework, not a published pip package or hosted scanner.
 Repository engineering and benchmark commands are offline by default:
 
 ```bash
+git clone https://github.com/RENJI04/renguard.git
+cd renguard
 python scripts/check.py
 python scripts/validate_repo.py
 python scripts/run_benchmark.py --help
@@ -289,7 +291,7 @@ Read [benchmark methodology](BENCHMARKING.md), the
 ## Repository structure
 
 ```text
-prompt-injection-auditor/
+renguard/
 ├── assets/branding/          # Approved RenGuard visual identity
 ├── SKILL.md                 # Core RenGuard Skill
 ├── references/              # Security specifications and catalogs
@@ -306,9 +308,9 @@ prompt-injection-auditor/
 └── SECURITY.md
 ```
 
-The repository name remains `prompt-injection-auditor`; RenGuard is the current product
-identity. Historical names and model metadata remain unchanged where provenance requires
-them.
+The repository is published as `RENJI04/renguard`; RenGuard is the project and product
+identity. Historical names and model metadata remain unchanged only where protected
+provenance requires them.
 
 ## Development status and validation
 
@@ -327,7 +329,7 @@ the final tagged repository state before publication.
 CI is configured to test Python 3.10–3.13. During Phase 10, local verification was
 performed on Python 3.12.14 only. GitHub-hosted CI subsequently passed on Python 3.10,
 3.11, 3.12, and 3.13 for the final tagged repository state in
-[run 38356227406](https://github.com/RENJI04/prompt-injection-auditor/actions/runs/38356227406).
+[run 38356227406](https://github.com/RENJI04/renguard/actions/runs/38356227406).
 
 Run the same dependency-free quality gate configured for CI:
 

@@ -145,6 +145,46 @@ class RepositoryEngineeringTests(unittest.TestCase):
         self.assertIn("evals/evals.json", HISTORICAL_V1_FILE_SHA256)
         self.assertTrue(any(path.startswith("evals/files/") for path in HISTORICAL_V1_FILE_SHA256))
 
+    def test_legacy_identity_is_confined_to_protected_historical_benchmark(self) -> None:
+        legacy_patterns = (
+            "prompt" + "-injection-" + "auditor",
+            "prompt" + "_injection_" + "auditor",
+            "prompt" + " injection " + "auditor",
+            "shield" + " " + "claude",
+            "claude" + "-skill",
+        )
+        exempt_path = Path("benchmarks/benchmark.json")
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+        ).stdout.split(b"\0")
+        matches: list[str] = []
+        for encoded_path in tracked:
+            if not encoded_path:
+                continue
+            relative = Path(encoded_path.decode("utf-8"))
+            if relative == exempt_path:
+                continue
+            data = (ROOT / relative).read_bytes()
+            if b"\0" in data:
+                continue
+            try:
+                text = data.decode("utf-8").lower()
+            except UnicodeDecodeError:
+                continue
+            for pattern in legacy_patterns:
+                if pattern in text:
+                    matches.append(f"{relative}: {pattern}")
+        self.assertEqual([], matches)
+
+        historical_text = (ROOT / exempt_path).read_text(encoding="utf-8").lower()
+        historical_occurrences = sum(
+            historical_text.count(pattern) for pattern in legacy_patterns
+        )
+        self.assertEqual(4, historical_occurrences)
+
     def test_repository_validator_covers_phase10_contracts(self) -> None:
         result = validate_repository(ROOT)
         self.assertEqual([], result.errors)
